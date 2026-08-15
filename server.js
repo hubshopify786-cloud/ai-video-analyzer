@@ -65,7 +65,15 @@ async function getYouTubeVideoData(videoId) {
     categoryId: video.snippet.categoryId
   };
 }
-
+function formatAudienceSize(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return num.toString();
+}
 // Fallback rule-based estimates (same as before)
 function estimateMetrics(videoData) {
   const categoryName = categoryMap[videoData.categoryId] || 'Unknown';
@@ -97,14 +105,15 @@ function estimateMetrics(videoData) {
   } else if (['Music', 'Film & Animation'].includes(categoryName)) {
     rpm = '$2.00';
   }
-
-  let growth = 'Moderate';
+     let growth = 'Moderate';
   if (viewsPerDay > 5000) growth = 'Strong';
   else if (viewsPerDay < 500) growth = 'Weak';
 
+  const estimatedNicheAudience = viewCount * 20;
+
   return {
     niche,
-    audience: viewCount.toLocaleString(),
+    audience: formatAudienceSize(estimatedNicheAudience),
     competition,
     saturation,
     rpm,
@@ -117,7 +126,7 @@ async function analyzeWithOpenRouter(videoData) {
   const prompt = `
 You are an expert content strategy analyst. Given the following YouTube video metadata, provide realistic estimates for:
 - Niche potential (High, Medium, Low)
-- Audience size (approximate as a string, e.g. "1.2M")
+- - Audience size: estimated total global audience interested in this niche (not just this video's views). Provide as a string, e.g. "2.5M" or "850K".
 - Competition (High, Medium, Low)
 - Creator saturation (High, Medium, Low)
 - Estimated RPM (as a string, e.g. "$8.50")
@@ -215,6 +224,11 @@ app.post('/analyze', async (req, res) => {
       };
     }
 
+        // Override audience size with our own niche estimate
+    // to avoid showing raw video views from the AI model.
+    const viewCountForAudience = parseInt(videoData.viewCount) || 0;
+    const estimatedNicheAudience = viewCountForAudience * 20;
+    analysis.metrics.audience = formatAudienceSize(estimatedNicheAudience);
     res.json({
       url: videoUrl,
       video: videoData,

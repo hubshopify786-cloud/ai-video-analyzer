@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="main-container">
   <h1>AI Video Analyzer</h1>
   <p>Paste a video link to start.</p>
   <input id="videoUrl" type="text" placeholder="Paste video URL here">
@@ -14,8 +15,9 @@
   <button id="analyzeBtn">Analyze</button>
 
   <div id="loading" hidden>
-    <p>Analyzing video...</p>
-  </div>
+  <div class="spinner"></div>
+  <p>Analyzing video...</p>
+</div>
 
   <div id="dashboard" hidden>
     <h2>Video Analysis</h2>
@@ -28,27 +30,27 @@
 
     <div class="metrics">
       <div class="metric">
-        <h3>Niche Potential</h3>
+        <h3>🔥 Niche Potential</h3>
         <p id="metricNiche">High</p>
       </div>
       <div class="metric">
-        <h3>Audience Size</h3>
+        <h3>👥 Audience Size</h3>
         <p id="metricAudience">1.2M</p>
       </div>
       <div class="metric">
-        <h3>Competition</h3>
+        <h3>⚔️ Competition</h3>
         <p id="metricCompetition">Medium</p>
       </div>
       <div class="metric">
-        <h3>Creator Saturation</h3>
+        <h3>📉 Creator Saturation</h3>
         <p id="metricSaturation">Low</p>
       </div>
       <div class="metric">
-        <h3>Estimated RPM</h3>
+        <h3>💰 Estimated RPM</h3>
         <p id="metricRPM">$8.50</p>
       </div>
       <div class="metric">
-        <h3>Growth Potential</h3>
+        <h3>📈 Growth Potential</h3>
         <p id="metricGrowth">Strong</p>
       </div>
     </div>
