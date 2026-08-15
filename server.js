@@ -8,8 +8,9 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// Map common YouTube category IDs to human-readable names
+// Map common YouTube category IDs (fallback)
 const categoryMap = {
   '1': 'Film & Animation',
   '2': 'Autos & Vehicles',
@@ -28,7 +29,6 @@ const categoryMap = {
   '29': 'Nonprofits & Activism'
 };
 
-// Extract video ID from common YouTube URL formats
 function extractVideoId(url) {
   const patterns = [
     /(?:youtube\.com\/watch\?v=)([^&]+)/,
@@ -45,7 +45,6 @@ function extractVideoId(url) {
   return null;
 }
 
-// Fetch video data from YouTube API
 async function getYouTubeVideoData(videoId) {
   const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,statistics&key=${YOUTUBE_API_KEY}`;
   const response = await fetch(apiUrl);
@@ -59,6 +58,7 @@ async function getYouTubeVideoData(videoId) {
   return {
     title: video.snippet.title,
     channel: video.snippet.channelTitle,
+    description: video.snippet.description || '',
     publishedAt: video.snippet.publishedAt,
     viewCount: video.statistics.viewCount,
     likeCount: video.statistics.likeCount,
@@ -66,18 +66,14 @@ async function getYouTubeVideoData(videoId) {
   };
 }
 
-// Estimate metrics from real video data using simple rules
+// Fallback rule-based estimates (same as before)
 function estimateMetrics(videoData) {
   const categoryName = categoryMap[videoData.categoryId] || 'Unknown';
   const viewCount = parseInt(videoData.viewCount) || 0;
   const publishedAt = new Date(videoData.publishedAt);
-  const daysSincePublished = Math.max(
-    1,
-    Math.floor((Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const daysSincePublished = Math.max(1, Math.floor((Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24)));
   const viewsPerDay = viewCount / daysSincePublished;
 
-  // Niche potential by category
   let niche = 'Medium';
   if (['Education', 'Science & Technology', 'Howto & Style', 'News & Politics'].includes(categoryName)) {
     niche = 'High';
@@ -85,7 +81,6 @@ function estimateMetrics(videoData) {
     niche = 'Low';
   }
 
-  // Competition and saturation by view count
   let competition = 'Low';
   if (viewCount > 1000000) competition = 'High';
   else if (viewCount > 100000) competition = 'Medium';
@@ -94,7 +89,6 @@ function estimateMetrics(videoData) {
   if (viewCount > 2000000) saturation = 'High';
   else if (viewCount > 200000) saturation = 'Medium';
 
-  // Estimated RPM by category (rough industry averages)
   let rpm = '$3.50';
   if (['Education', 'Science & Technology', 'News & Politics'].includes(categoryName)) {
     rpm = '$8.00';
@@ -104,7 +98,6 @@ function estimateMetrics(videoData) {
     rpm = '$2.00';
   }
 
-  // Growth potential based on views per day
   let growth = 'Moderate';
   if (viewsPerDay > 5000) growth = 'Strong';
   else if (viewsPerDay < 500) growth = 'Weak';
@@ -119,7 +112,79 @@ function estimateMetrics(videoData) {
   };
 }
 
-// /analyze endpoint
+// Call OpenRouter API to analyze video metadata
+async function analyzeWithOpenRouter(videoData) {
+  const prompt = `
+You are an expert content strategy analyst. Given the following YouTube video metadata, provide realistic estimates for:
+- Niche potential (High, Medium, Low)
+- Audience size (approximate as a string, e.g. "1.2M")
+- Competition (High, Medium, Low)
+- Creator saturation (High, Medium, Low)
+- Estimated RPM (as a string, e.g. "$8.50")
+- Growth potential (Strong, Moderate, Weak)
+- Likely AI tools used to create the video (list 4-6 tools with name and purpose)
+
+Return ONLY valid JSON in this exact shape:
+{
+  "metrics": {
+    "niche": "string",
+    "audience": "string",
+    "competition": "string",
+    "saturation": "string",
+    "rpm": "string",
+    "growth": "string"
+  },
+  "tools": [
+    { "name": "string", "purpose": "string" }
+  ]
+}
+
+Video metadata:
+Title: ${videoData.title}
+Channel: ${videoData.channel}
+Description: ${videoData.description}
+Category ID: ${videoData.categoryId}
+Views: ${videoData.viewCount}
+Likes: ${videoData.likeCount}
+Published: ${videoData.publishedAt}
+`;
+
+  const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('OpenRouter API request failed');
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content || '';
+
+  // Extract JSON from the response (may be wrapped in code fences)
+  const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Could not parse AI response');
+  }
+
+  const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+  return parsed;
+}
+
 app.post('/analyze', async (req, res) => {
   const videoUrl = req.body.videoUrl;
   const videoId = extractVideoId(videoUrl);
@@ -130,24 +195,35 @@ app.post('/analyze', async (req, res) => {
 
   try {
     const videoData = await getYouTubeVideoData(videoId);
-    const metrics = estimateMetrics(videoData);
+    let analysis;
+
+    try {
+      // Try AI analysis first
+      analysis = await analyzeWithOpenRouter(videoData);
+    } catch (aiError) {
+      console.warn('AI analysis failed, falling back to rule-based:', aiError.message);
+      analysis = {
+        metrics: estimateMetrics(videoData),
+        tools: [
+          { name: 'Cutwise', purpose: 'AI video editing' },
+          { name: 'VoiceSynth', purpose: 'AI voiceover' },
+          { name: 'ThumbnailPro', purpose: 'AI thumbnails' },
+          { name: 'ScriptFlow', purpose: 'AI script writing' },
+          { name: 'TrendRadar', purpose: 'Trend discovery' },
+          { name: 'Captionly', purpose: 'Auto captions' }
+        ]
+      };
+    }
 
     res.json({
       url: videoUrl,
       video: videoData,
-      metrics,
-      tools: [
-        { name: 'Cutwise', purpose: 'AI video editing' },
-        { name: 'VoiceSynth', purpose: 'AI voiceover' },
-        { name: 'ThumbnailPro', purpose: 'AI thumbnails' },
-        { name: 'ScriptFlow', purpose: 'AI script writing' },
-        { name: 'TrendRadar', purpose: 'Trend discovery' },
-        { name: 'Captionly', purpose: 'Auto captions' }
-      ]
+      metrics: analysis.metrics,
+      tools: analysis.tools
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to analyze video. Make sure the URL is valid and the API key is correct.' });
+    res.status(500).json({ error: 'Failed to analyze video. Make sure the URL is valid and API keys are correct.' });
   }
 });
 
