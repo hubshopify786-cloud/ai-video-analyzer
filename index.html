@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Video Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>AI Video Analyzer</h1>
+  <p>Paste a video link to start.</p>
+  <input id="videoUrl" type="text" placeholder="Paste video URL here">
+  <p id="errorMsg" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
+  <button id="analyzeBtn">Analyze</button>
+
+  <div id="loading" hidden>
+    <p>Analyzing video...</p>
+  </div>
+
+  <div id="dashboard" hidden>
+    <h2>Video Analysis</h2>
+    <p id="urlDisplay" style="color: #b0b3b8; text-align: center; word-break: break-all; margin-bottom: 1.5rem;"></p>
+    <div id="videoInfo" class="video-info">
+  <h3 id="videoTitle"></h3>
+  <p id="videoChannel"></p>
+  <p id="videoStats"></p>
+</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <h3>Niche Potential</h3>
+        <p id="metricNiche">High</p>
+      </div>
+      <div class="metric">
+        <h3>Audience Size</h3>
+        <p id="metricAudience">1.2M</p>
+      </div>
+      <div class="metric">
+        <h3>Competition</h3>
+        <p id="metricCompetition">Medium</p>
+      </div>
+      <div class="metric">
+        <h3>Creator Saturation</h3>
+        <p id="metricSaturation">Low</p>
+      </div>
+      <div class="metric">
+        <h3>Estimated RPM</h3>
+        <p id="metricRPM">$8.50</p>
+      </div>
+      <div class="metric">
+        <h3>Growth Potential</h3>
+        <p id="metricGrowth">Strong</p>
+      </div>
+    </div>
+
+    <div id="toolsSection">
+      <h2>Tools Used to Create This Video</h2>
+      <div id="toolsContainer" class="tools">
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
