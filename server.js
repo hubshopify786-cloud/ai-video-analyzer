@@ -1,11 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(__dirname));
+// Load tool database from tools.json
+const toolsDatabase = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'tools.json'), 'utf8')
+);
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -196,6 +201,23 @@ Published: ${videoData.publishedAt}
 
 app.post('/analyze', async (req, res) => {
   const videoUrl = req.body.videoUrl;
+  function scanDescription(description, tools) {
+  const lowerDesc = description.toLowerCase();
+  const detected = [];
+
+  tools.forEach((tool) => {
+    const match = tool.aliases.some((alias) => lowerDesc.includes(alias));
+    if (match) {
+      detected.push({
+        name: tool.name,
+        category: tool.category,
+        confidence: 'Confirmed'
+      });
+    }
+  });
+
+  return detected;
+}
   const videoId = extractVideoId(videoUrl);
 
   if (!videoId) {
@@ -204,6 +226,7 @@ app.post('/analyze', async (req, res) => {
 
   try {
     const videoData = await getYouTubeVideoData(videoId);
+    const detectedTools = scanDescription(videoData.description, toolsDatabase);
     let analysis;
 
     try {
@@ -229,11 +252,12 @@ app.post('/analyze', async (req, res) => {
     const viewCountForAudience = parseInt(videoData.viewCount) || 0;
     const estimatedNicheAudience = viewCountForAudience * 20;
     analysis.metrics.audience = formatAudienceSize(estimatedNicheAudience);
-    res.json({
+        res.json({
       url: videoUrl,
       video: videoData,
       metrics: analysis.metrics,
-      tools: analysis.tools
+      tools: analysis.tools,
+      detectedTools: detectedTools
     });
   } catch (error) {
     console.error(error);

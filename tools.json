@@ -1,0 +1,62 @@
+[
+  {
+    "name": "CapCut",
+    "aliases": ["capcut", "cap cut", "capcut.com"],
+    "category": "Video Editing"
+  },
+  {
+    "name": "ElevenLabs",
+    "aliases": ["elevenlabs", "eleven labs", "11labs"],
+    "category": "AI Voiceover"
+  },
+  {
+    "name": "Midjourney",
+    "aliases": ["midjourney", "mid journey", "mj"],
+    "category": "AI Image Generation"
+  },
+  {
+    "name": "Canva",
+    "aliases": ["canva", "canva.com"],
+    "category": "Design & Thumbnails"
+  },
+  {
+    "name": "Submagic",
+    "aliases": ["submagic", "sub magic", "submagic.co"],
+    "category": "AI Captions"
+  },
+  {
+    "name": "Opus Clip",
+    "aliases": ["opus clip", "opusclip", "opus.pro"],
+    "category": "AI Video Clipping"
+  },
+  {
+    "name": "HeyGen",
+    "aliases": ["heygen", "hey gen", "heygen.com"],
+    "category": "AI Avatar Video"
+  },
+  {
+    "name": "Descript",
+    "aliases": ["descript", "descript.com"],
+    "category": "Audio/Video Editing"
+  },
+  {
+    "name": "Runway",
+    "aliases": ["runway", "runwayml", "runway ml"],
+    "category": "AI Video Generation"
+  },
+  {
+    "name": "TubeBuddy",
+    "aliases": ["tubebuddy", "tube buddy", "tubebuddy.com"],
+    "category": "YouTube SEO"
+  },
+  {
+    "name": "VidIQ",
+    "aliases": ["vidiq", "vid iq", "vidiq.com"],
+    "category": "YouTube Analytics"
+  },
+  {
+    "name": "Notion",
+    "aliases": ["notion", "notion.so"],
+    "category": "Productivity"
+  }
+]

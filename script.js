@@ -20,8 +20,40 @@ const videoStats = document.getElementById('videoStats');
 
 // Tools container
 const toolsContainer = document.getElementById('toolsContainer');
+const detectedToolsContainer = document.getElementById('detectedToolsContainer');
 
 // Render tools from server response
+function renderDetectedTools(detectedTools) {
+  detectedToolsContainer.innerHTML = '';
+
+  if (detectedTools.length === 0) {
+    detectedToolsContainer.innerHTML = '<p style="color: #b0b3b8;">No tools detected in the description.</p>';
+    return;
+  }
+
+  detectedTools.forEach(function (tool) {
+    const toolDiv = document.createElement('div');
+    toolDiv.className = 'tool';
+
+    const toolName = document.createElement('h3');
+    toolName.textContent = tool.name;
+
+    const toolCategory = document.createElement('p');
+    toolCategory.textContent = tool.category;
+
+    const confidence = document.createElement('span');
+    confidence.textContent = '✓ Confirmed';
+    confidence.style.color = '#4ade80';
+    confidence.style.fontSize = '0.8rem';
+    confidence.style.fontWeight = '600';
+
+    toolDiv.appendChild(toolName);
+    toolDiv.appendChild(toolCategory);
+    toolDiv.appendChild(confidence);
+
+    detectedToolsContainer.appendChild(toolDiv);
+  });
+}
 function renderTools(tools) {
   toolsContainer.innerHTML = '';
 
@@ -87,6 +119,9 @@ analyzeBtn.addEventListener('click', async function () {
     metricSaturation.textContent = data.metrics.saturation;
     metricRPM.textContent = data.metrics.rpm;
     metricGrowth.textContent = data.metrics.growth;
+
+            // Render detected tools from description
+    renderDetectedTools(data.detectedTools);
 
     // Render tools from server
     renderTools(data.tools);
