@@ -8,64 +8,89 @@
 </head>
 <body>
   <div class="main-container">
-  <h1>AI Video Analyzer</h1>
-  <p>Paste a video link to start.</p>
-  <input id="videoUrl" type="text" placeholder="Paste video URL here">
-  <p id="errorMsg" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
-  <button id="analyzeBtn">Analyze</button>
+    <h1>AI Video Analyzer</h1>
+    <p>Paste a video link to start.</p>
+    <input id="videoUrl" type="text" placeholder="Paste video URL here">
+    <p id="errorMsg" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
+    <button id="analyzeBtn">Analyze</button>
 
-  <div id="loading" hidden>
-  <div class="spinner"></div>
-  <p>Analyzing video...</p>
-</div>
+    <div id="channelForm" style="margin-top: 2rem;">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊 Channel Analysis</h2>
+      <p>Paste a YouTube channel URL or handle to see what tools that creator uses across their videos.</p>
+      <input id="channelUrl" type="text" placeholder="Channel URL or @handle">
+      <p id="channelError" hidden style="color: #ef4444; font-size: 0.9rem;"></p>
+      <button id="analyzeChannelBtn">Analyze Channel</button>
+    </div>
 
-  <div id="dashboard" hidden>
-    <h2>Video Analysis</h2>
-    <p id="urlDisplay" style="color: #b0b3b8; text-align: center; word-break: break-all; margin-bottom: 1.5rem;"></p>
-    <div id="videoInfo" class="video-info">
-  <h3 id="videoTitle"></h3>
-  <p id="videoChannel"></p>
-  <p id="videoStats"></p>
-</div>
+    <div id="loading" hidden>
+      <div class="spinner"></div>
+      <p>Analyzing video...</p>
+    </div>
 
-    <div class="metrics">
-      <div class="metric">
-        <h3>🔥 Niche Potential</h3>
-        <p id="metricNiche">High</p>
+    <div id="channelLoading" hidden>
+      <div class="spinner"></div>
+      <p>Analyzing channel...</p>
+    </div>
+
+    <div id="dashboard" hidden>
+      <h2>Video Analysis</h2>
+      <p id="urlDisplay" style="color: #b0b3b8; text-align: center; word-break: break-all; margin-bottom: 1.5rem;"></p>
+
+      <div id="videoInfo" class="video-info">
+        <h3 id="videoTitle"></h3>
+        <p id="videoChannel"></p>
+        <p id="videoStats"></p>
       </div>
-      <div class="metric">
-        <h3>👥 Audience Size</h3>
-        <p id="metricAudience">1.2M</p>
+
+      <div class="metrics">
+        <div class="metric">
+          <h3>🔥 Niche Potential</h3>
+          <p id="metricNiche">High</p>
+        </div>
+        <div class="metric">
+          <h3>👥 Audience Size</h3>
+          <p id="metricAudience">1.2M</p>
+        </div>
+        <div class="metric">
+          <h3>⚔️ Competition</h3>
+          <p id="metricCompetition">Medium</p>
+        </div>
+        <div class="metric">
+          <h3>📉 Creator Saturation</h3>
+          <p id="metricSaturation">Low</p>
+        </div>
+        <div class="metric">
+          <h3>💰 Estimated RPM</h3>
+          <p id="metricRPM">$8.50</p>
+        </div>
+        <div class="metric">
+          <h3>📈 Growth Potential</h3>
+          <p id="metricGrowth">Strong</p>
+        </div>
       </div>
-      <div class="metric">
-        <h3>⚔️ Competition</h3>
-        <p id="metricCompetition">Medium</p>
+
+      <div id="detectedToolsSection">
+        <h2>🔍 Tools Detected in Description</h2>
+        <div id="detectedToolsContainer" class="tools"></div>
       </div>
-      <div class="metric">
-        <h3>📉 Creator Saturation</h3>
-        <p id="metricSaturation">Low</p>
-      </div>
-      <div class="metric">
-        <h3>💰 Estimated RPM</h3>
-        <p id="metricRPM">$8.50</p>
-      </div>
-      <div class="metric">
-        <h3>📈 Growth Potential</h3>
-        <p id="metricGrowth">Strong</p>
+
+      <div id="toolsSection">
+        <h2>🤖 AI Suggested Tools</h2>
+        <div id="toolsContainer" class="tools"></div>
       </div>
     </div>
 
-    <div id="detectedToolsSection">
-  <h2>🔍 Tools Detected in Description</h2>
-  <div id="detectedToolsContainer" class="tools">
+    <div id="channelDashboard" hidden>
+      <h2>📈 Channel Analysis Results</h2>
+      <div id="channelInfo" class="video-info" style="text-align: center;">
+        <h3 id="channelTitle"></h3>
+        <p id="channelStats"></p>
+      </div>
+      <h3 style="text-align: center; margin: 1rem 0;">🛠️ Tools Detected Across Channel</h3>
+      <div id="channelToolsContainer" class="tools"></div>
+    </div>
   </div>
-</div>
 
-<div id="toolsSection">
-  <h2>🤖 AI Suggested Tools</h2>
-  <div id="toolsContainer" class="tools">
-  </div>
-</div>
   <script src="script.js"></script>
 </body>
 </html>

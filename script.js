@@ -17,6 +17,16 @@ const metricGrowth = document.getElementById('metricGrowth');
 const videoTitle = document.getElementById('videoTitle');
 const videoChannel = document.getElementById('videoChannel');
 const videoStats = document.getElementById('videoStats');
+// Channel analysis elements
+const channelForm = document.getElementById('channelForm');
+const channelUrlInput = document.getElementById('channelUrl');
+const channelError = document.getElementById('channelError');
+const analyzeChannelBtn = document.getElementById('analyzeChannelBtn');
+const channelLoading = document.getElementById('channelLoading');
+const channelDashboard = document.getElementById('channelDashboard');
+const channelTitle = document.getElementById('channelTitle');
+const channelStats = document.getElementById('channelStats');
+const channelToolsContainer = document.getElementById('channelToolsContainer');
 
 // Tools container
 const toolsContainer = document.getElementById('toolsContainer');
@@ -54,6 +64,36 @@ function renderDetectedTools(detectedTools) {
     detectedToolsContainer.appendChild(toolDiv);
   });
 }
+function renderChannelTools(tools) {
+  channelToolsContainer.innerHTML = '';
+
+  if (tools.length === 0) {
+    channelToolsContainer.innerHTML = '<p style="color: #b0b3b8;">No known tools detected in recent videos.</p>';
+    return;
+  }
+
+  tools.forEach(function (tool) {
+    const toolDiv = document.createElement('div');
+    toolDiv.className = 'tool';
+
+    const toolName = document.createElement('h3');
+    toolName.textContent = tool.name;
+
+    const toolCategory = document.createElement('p');
+    toolCategory.textContent = tool.category;
+
+    const count = document.createElement('p');
+    count.textContent = `Found in ${tool.count} video(s)`;
+    count.style.color = '#4ade80';
+    count.style.fontWeight = '600';
+
+    toolDiv.appendChild(toolName);
+    toolDiv.appendChild(toolCategory);
+    toolDiv.appendChild(count);
+
+    channelToolsContainer.appendChild(toolDiv);
+  });
+}
 function renderTools(tools) {
   toolsContainer.innerHTML = '';
 
@@ -86,9 +126,10 @@ analyzeBtn.addEventListener('click', async function () {
   errorMsg.hidden = true;
   urlDisplay.textContent = `Video URL: ${videoUrl}`;
 
-  // Show loading, hide dashboard
+  // Show loading, hide dashboard and channel dashboard
   loading.hidden = false;
   dashboard.hidden = true;
+  channelDashboard.hidden = true;
 
   try {
     const response = await fetch('/analyze', {
@@ -125,7 +166,7 @@ analyzeBtn.addEventListener('click', async function () {
 
     // Render tools from server
     renderTools(data.tools);
-
+       
     loading.hidden = true;
     dashboard.hidden = false;
   } catch (error) {
@@ -135,7 +176,54 @@ analyzeBtn.addEventListener('click', async function () {
     console.error(error);
   }
 });
+analyzeChannelBtn.addEventListener('click', async function () {
+  const channelUrl = channelUrlInput.value.trim();
 
+  if (channelUrl === '') {
+    channelError.textContent = 'Please paste a channel URL or handle first.';
+    channelError.hidden = false;
+    return;
+  }
+
+  channelError.hidden = true;
+
+  // Hide video dashboard, show channel loading
+  dashboard.hidden = true;
+  channelDashboard.hidden = true;
+  loading.hidden = true; // hide video loading if any
+  channelLoading.hidden = false;
+
+  try {
+    const response = await fetch('/analyze-channel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ channelUrl })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    // Update channel info
+    channelTitle.textContent = data.channel.title;
+    channelStats.textContent = `Subscribers: ${Number(data.channel.subscriberCount).toLocaleString()} | Videos: ${Number(data.channel.videoCount).toLocaleString()} | Analyzed: ${data.videosAnalyzed}`;
+
+    // Render detected tools
+    renderChannelTools(data.detectedTools);
+
+    channelLoading.hidden = true;
+    channelDashboard.hidden = false;
+  } catch (error) {
+    channelLoading.hidden = true;
+    channelError.textContent = error.message || 'Something went wrong. Is the server running?';
+    channelError.hidden = false;
+    console.error(error);
+  }
+});
 videoUrlInput.addEventListener('input', function () {
   errorMsg.hidden = true;
 });

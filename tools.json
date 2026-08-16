@@ -1,62 +1,105 @@
 [
-  {
-    "name": "CapCut",
-    "aliases": ["capcut", "cap cut", "capcut.com"],
-    "category": "Video Editing"
-  },
-  {
-    "name": "ElevenLabs",
-    "aliases": ["elevenlabs", "eleven labs", "11labs"],
-    "category": "AI Voiceover"
-  },
-  {
-    "name": "Midjourney",
-    "aliases": ["midjourney", "mid journey", "mj"],
-    "category": "AI Image Generation"
-  },
-  {
-    "name": "Canva",
-    "aliases": ["canva", "canva.com"],
-    "category": "Design & Thumbnails"
-  },
-  {
-    "name": "Submagic",
-    "aliases": ["submagic", "sub magic", "submagic.co"],
-    "category": "AI Captions"
-  },
-  {
-    "name": "Opus Clip",
-    "aliases": ["opus clip", "opusclip", "opus.pro"],
-    "category": "AI Video Clipping"
-  },
-  {
-    "name": "HeyGen",
-    "aliases": ["heygen", "hey gen", "heygen.com"],
-    "category": "AI Avatar Video"
-  },
-  {
-    "name": "Descript",
-    "aliases": ["descript", "descript.com"],
-    "category": "Audio/Video Editing"
-  },
-  {
-    "name": "Runway",
-    "aliases": ["runway", "runwayml", "runway ml"],
-    "category": "AI Video Generation"
-  },
-  {
-    "name": "TubeBuddy",
-    "aliases": ["tubebuddy", "tube buddy", "tubebuddy.com"],
-    "category": "YouTube SEO"
-  },
-  {
-    "name": "VidIQ",
-    "aliases": ["vidiq", "vid iq", "vidiq.com"],
-    "category": "YouTube Analytics"
-  },
-  {
-    "name": "Notion",
-    "aliases": ["notion", "notion.so"],
-    "category": "Productivity"
-  }
+  { "name": "CapCut", "aliases": ["capcut", "cap cut", "capcut.com"], "category": "Video Editing" },
+  { "name": "Adobe Premiere Pro", "aliases": ["premiere pro", "adobe premiere", "premiere"], "category": "Video Editing" },
+  { "name": "Final Cut Pro", "aliases": ["final cut", "final cut pro", "fcpx"], "category": "Video Editing" },
+  { "name": "DaVinci Resolve", "aliases": ["davinci resolve", "davinci", "resolve"], "category": "Video Editing" },
+  { "name": "Filmora", "aliases": ["filmora", "wondershare filmora"], "category": "Video Editing" },
+  { "name": "iMovie", "aliases": ["imovie"], "category": "Video Editing" },
+  { "name": "InShot", "aliases": ["inshot"], "category": "Video Editing" },
+  { "name": "KineMaster", "aliases": ["kinemaster"], "category": "Video Editing" },
+  { "name": "VN Video Editor", "aliases": ["vn video editor", "vn editor", "vlog now"], "category": "Video Editing" },
+  { "name": "Shotcut", "aliases": ["shotcut"], "category": "Video Editing" },
+
+  { "name": "Descript", "aliases": ["descript", "descript.com"], "category": "AI Video Editing" },
+  { "name": "Runway", "aliases": ["runway", "runwayml", "runway ml"], "category": "AI Video Generation" },
+  { "name": "Pika", "aliases": ["pika", "pika labs", "pika.art"], "category": "AI Video Generation" },
+  { "name": "Synthesia", "aliases": ["synthesia"], "category": "AI Avatar Video" },
+  { "name": "HeyGen", "aliases": ["heygen", "hey gen", "heygen.com"], "category": "AI Avatar Video" },
+  { "name": "Opus Clip", "aliases": ["opus clip", "opusclip", "opus.pro"], "category": "AI Video Clipping" },
+  { "name": "Submagic", "aliases": ["submagic", "sub magic", "submagic.co"], "category": "AI Captions" },
+  { "name": "Wisecut", "aliases": ["wisecut"], "category": "AI Video Editing" },
+  { "name": "Pictory", "aliases": ["pictory", "pictory.ai"], "category": "AI Video Generation" },
+  { "name": "InVideo", "aliases": ["invideo", "invideo.io"], "category": "AI Video Generation" },
+
+  { "name": "ElevenLabs", "aliases": ["elevenlabs", "eleven labs", "11labs"], "category": "AI Voiceover" },
+  { "name": "Murf", "aliases": ["murf", "murf.ai"], "category": "AI Voiceover" },
+  { "name": "Speechify", "aliases": ["speechify"], "category": "Text-to-Speech" },
+  { "name": "Adobe Podcast", "aliases": ["adobe podcast", "podcast.adobe.com"], "category": "Audio Editing" },
+  { "name": "Audacity", "aliases": ["audacity"], "category": "Audio Editing" },
+  { "name": "GarageBand", "aliases": ["garageband"], "category": "Audio Editing" },
+
+  { "name": "Canva", "aliases": ["canva", "canva.com"], "category": "Design & Thumbnails" },
+  { "name": "Adobe Photoshop", "aliases": ["photoshop", "adobe photoshop"], "category": "Design & Thumbnails" },
+  { "name": "Adobe Illustrator", "aliases": ["illustrator", "adobe illustrator"], "category": "Design & Thumbnails" },
+  { "name": "Figma", "aliases": ["figma", "figma.com"], "category": "Design & Thumbnails" },
+  { "name": "Photopea", "aliases": ["photopea", "photopea.com"], "category": "Design & Thumbnails" },
+  { "name": "GIMP", "aliases": ["gimp"], "category": "Design & Thumbnails" },
+
+  { "name": "Midjourney", "aliases": ["midjourney", "mid journey", "mj"], "category": "AI Image Generation" },
+  { "name": "DALL-E", "aliases": ["dall-e", "dalle", "dall e", "openai dall-e"], "category": "AI Image Generation" },
+  { "name": "Stable Diffusion", "aliases": ["stable diffusion", "stable-diffusion", "sd"], "category": "AI Image Generation" },
+  { "name": "Leonardo AI", "aliases": ["leonardo ai", "leonardo.ai", "leonardo"], "category": "AI Image Generation" },
+  { "name": "Ideogram", "aliases": ["ideogram", "ideogram.ai"], "category": "AI Image Generation" },
+
+  { "name": "ChatGPT", "aliases": ["chatgpt", "chat gpt", "gpt-3", "gpt-4", "openai"], "category": "AI Writing" },
+  { "name": "Jasper", "aliases": ["jasper", "jasper ai", "jarvis"], "category": "AI Writing" },
+  { "name": "Copy.ai", "aliases": ["copy.ai", "copyai"], "category": "AI Writing" },
+  { "name": "Notion", "aliases": ["notion", "notion.so"], "category": "Productivity" },
+  { "name": "Grammarly", "aliases": ["grammarly"], "category": "Writing Assistant" },
+  { "name": "Google Docs", "aliases": ["google docs", "docs.google"], "category": "Writing" },
+
+  { "name": "TubeBuddy", "aliases": ["tubebuddy", "tube buddy", "tubebuddy.com"], "category": "YouTube SEO" },
+  { "name": "VidIQ", "aliases": ["vidiq", "vid iq", "vidiq.com"], "category": "YouTube Analytics" },
+  { "name": "Morningfame", "aliases": ["morningfame", "morning fame"], "category": "YouTube Analytics" },
+  { "name": "Social Blade", "aliases": ["social blade", "socialblade"], "category": "Analytics" },
+
+  { "name": "Pexels", "aliases": ["pexels", "pexels.com"], "category": "Stock Media" },
+  { "name": "Unsplash", "aliases": ["unsplash", "unsplash.com"], "category": "Stock Media" },
+  { "name": "Storyblocks", "aliases": ["storyblocks", "story blocks"], "category": "Stock Media" },
+  { "name": "Epidemic Sound", "aliases": ["epidemic sound", "epidemicsound"], "category": "Music Licensing" },
+  { "name": "Artlist", "aliases": ["artlist", "artlist.io"], "category": "Music & SFX" },
+
+  { "name": "Trello", "aliases": ["trello"], "category": "Productivity" },
+  { "name": "Asana", "aliases": ["asana"], "category": "Productivity" },
+  { "name": "Slack", "aliases": ["slack"], "category": "Communication" },
+  { "name": "Monday.com", "aliases": ["monday.com", "monday"], "category": "Productivity" },
+
+  { "name": "OBS Studio", "aliases": ["obs studio", "obs", "open broadcaster software"], "category": "Live Streaming" },
+  { "name": "Streamlabs", "aliases": ["streamlabs", "streamlabs obs"], "category": "Live Streaming" },
+  { "name": "Ecamm Live", "aliases": ["ecamm live", "ecamm"], "category": "Live Streaming" },
+
+  { "name": "Repurpose.io", "aliases": ["repurpose.io", "repurpose"], "category": "Content Repurposing" },
+  { "name": "Lumen5", "aliases": ["lumen5"], "category": "Video Creation" },
+  { "name": "ContentStudio", "aliases": ["contentstudio", "content studio"], "category": "Content Management" },
+    { "name": "Loom", "aliases": ["loom", "loom.com"], "category": "Screen Recording" },
+  { "name": "Camtasia", "aliases": ["camtasia", "techsmith camtasia"], "category": "Screen Recording" },
+  { "name": "Screencast-O-Matic", "aliases": ["screencast-o-matic", "screencast o matic", "screencastomatic"], "category": "Screen Recording" },
+  { "name": "After Effects", "aliases": ["after effects", "adobe after effects", "ae"], "category": "Animation & Motion Graphics" },
+  { "name": "Blender", "aliases": ["blender", "blender3d"], "category": "3D & Animation" },
+  { "name": "Animaker", "aliases": ["animaker"], "category": "Animation" },
+  { "name": "Vyond", "aliases": ["vyond", "goanimate"], "category": "Animation" },
+  { "name": "FL Studio", "aliases": ["fl studio", "flstudio"], "category": "Music Production" },
+  { "name": "Ableton Live", "aliases": ["ableton", "ableton live"], "category": "Music Production" },
+  { "name": "Logic Pro", "aliases": ["logic pro", "logic pro x"], "category": "Music Production" },
+  { "name": "Adobe Audition", "aliases": ["adobe audition", "audition"], "category": "Audio Editing" },
+  { "name": "Videvo", "aliases": ["videvo", "videvo.net"], "category": "Stock Video" },
+  { "name": "Mixkit", "aliases": ["mixkit", "mixkit.co"], "category": "Stock Media" },
+  { "name": "DeepL", "aliases": ["deepl", "deep l"], "category": "Translation" },
+  { "name": "Buffer", "aliases": ["buffer", "buffer.com"], "category": "Social Media Scheduling" },
+  { "name": "Hootsuite", "aliases": ["hootsuite"], "category": "Social Media Scheduling" },
+  { "name": "Later", "aliases": ["later", "later.com"], "category": "Social Media Scheduling" },
+  { "name": "ConvertKit", "aliases": ["convertkit", "convert kit"], "category": "Email Marketing" },
+  { "name": "Mailchimp", "aliases": ["mailchimp", "mail chimp"], "category": "Email Marketing" },
+  { "name": "Beehiiv", "aliases": ["beehiiv", "beehiiv.com"], "category": "Email Marketing" },
+  { "name": "Linktree", "aliases": ["linktree", "linktree.com"], "category": "Link in Bio" },
+  { "name": "Beacons", "aliases": ["beacons", "beacons.ai"], "category": "Link in Bio" },
+  { "name": "Teachable", "aliases": ["teachable", "teachable.com"], "category": "Online Courses" },
+  { "name": "Kajabi", "aliases": ["kajabi"], "category": "Online Courses" },
+  { "name": "Podia", "aliases": ["podia"], "category": "Online Courses" },
+  { "name": "Wix", "aliases": ["wix", "wix.com"], "category": "Website Builder" },
+  { "name": "Squarespace", "aliases": ["squarespace", "square space"], "category": "Website Builder" },
+  { "name": "WordPress", "aliases": ["wordpress", "wp"], "category": "Website Builder" },
+  { "name": "Google Analytics", "aliases": ["google analytics", "analytics.google"], "category": "Analytics" },
+  { "name": "Otter.ai", "aliases": ["otter.ai", "otter ai", "otter"], "category": "AI Transcription" },
+  { "name": "ClickUp", "aliases": ["clickup", "click up"], "category": "Project Management" }
 ]

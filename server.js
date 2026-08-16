@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(__dirname));
+
 // Load tool database from tools.json
 const toolsDatabase = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'tools.json'), 'utf8')
@@ -34,6 +35,7 @@ const categoryMap = {
   '29': 'Nonprofits & Activism'
 };
 
+// Extract video ID from common YouTube URL formats
 function extractVideoId(url) {
   const patterns = [
     /(?:youtube\.com\/watch\?v=)([^&]+)/,
@@ -50,6 +52,77 @@ function extractVideoId(url) {
   return null;
 }
 
+// Extract channel identifier from URL or handle
+function extractChannelIdentifier(input) {
+  if (!input) return null;
+  input = input.trim();
+
+  const handleMatch = input.match(/youtube\.com\/@([^/?]+)/);
+  if (handleMatch) {
+    return { type: 'handle', value: handleMatch[1] };
+  }
+
+  const idMatch = input.match(/youtube\.com\/channel\/([^/?]+)/);
+  if (idMatch) {
+    return { type: 'id', value: idMatch[1] };
+  }
+
+  if (input.startsWith('@')) {
+    return { type: 'handle', value: input.substring(1) };
+  }
+
+  if (input.startsWith('UC')) {
+    return { type: 'id', value: input };
+  }
+
+  return null;
+}
+
+// Fetch channel data from YouTube API
+async function getChannelData(identifier) {
+  let params;
+  if (identifier.type === 'handle') {
+    params = `forHandle=${identifier.value}`;
+  } else {
+    params = `id=${identifier.value}`;
+  }
+
+  const apiUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&${params}&key=${YOUTUBE_API_KEY}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+
+  if (!data.items || data.items.length === 0) {
+    throw new Error('Channel not found');
+  }
+
+  const channel = data.items[0];
+  return {
+    title: channel.snippet.title,
+    subscriberCount: channel.statistics.subscriberCount,
+    videoCount: channel.statistics.videoCount,
+    uploadsPlaylistId: channel.contentDetails.relatedPlaylists.uploads
+  };
+}
+
+// Fetch latest videos from channel's uploads playlist
+async function getChannelVideos(playlistId, maxResults = 10) {
+  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${maxResults}&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+
+  if (!data.items || data.items.length === 0) {
+    return [];
+  }
+
+  return data.items.map(item => ({
+    title: item.snippet.title,
+    description: item.snippet.description || '',
+    publishedAt: item.snippet.publishedAt,
+    videoId: item.snippet.resourceId.videoId
+  }));
+}
+
+// Fetch single video data from YouTube API
 async function getYouTubeVideoData(videoId) {
   const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,statistics&key=${YOUTUBE_API_KEY}`;
   const response = await fetch(apiUrl);
@@ -70,6 +143,27 @@ async function getYouTubeVideoData(videoId) {
     categoryId: video.snippet.categoryId
   };
 }
+
+// Scan description for known tools
+function scanDescription(description, tools) {
+  const lowerDesc = description.toLowerCase();
+  const detected = [];
+
+  tools.forEach((tool) => {
+    const match = tool.aliases.some((alias) => lowerDesc.includes(alias));
+    if (match) {
+      detected.push({
+        name: tool.name,
+        category: tool.category,
+        confidence: 'Confirmed'
+      });
+    }
+  });
+
+  return detected;
+}
+
+// Format audience size as K/M
 function formatAudienceSize(num) {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
@@ -79,7 +173,8 @@ function formatAudienceSize(num) {
   }
   return num.toString();
 }
-// Fallback rule-based estimates (same as before)
+
+// Fallback rule-based estimates
 function estimateMetrics(videoData) {
   const categoryName = categoryMap[videoData.categoryId] || 'Unknown';
   const viewCount = parseInt(videoData.viewCount) || 0;
@@ -110,7 +205,8 @@ function estimateMetrics(videoData) {
   } else if (['Music', 'Film & Animation'].includes(categoryName)) {
     rpm = '$2.00';
   }
-     let growth = 'Moderate';
+
+  let growth = 'Moderate';
   if (viewsPerDay > 5000) growth = 'Strong';
   else if (viewsPerDay < 500) growth = 'Weak';
 
@@ -131,7 +227,7 @@ async function analyzeWithOpenRouter(videoData) {
   const prompt = `
 You are an expert content strategy analyst. Given the following YouTube video metadata, provide realistic estimates for:
 - Niche potential (High, Medium, Low)
-- - Audience size: estimated total global audience interested in this niche (not just this video's views). Provide as a string, e.g. "2.5M" or "850K".
+- Audience size: estimated total global audience interested in this niche (not just this video's views). Provide as a string, e.g. "2.5M" or "850K".
 - Competition (High, Medium, Low)
 - Creator saturation (High, Medium, Low)
 - Estimated RPM (as a string, e.g. "$8.50")
@@ -189,35 +285,17 @@ Published: ${videoData.publishedAt}
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || '';
 
-  // Extract JSON from the response (may be wrapped in code fences)
   const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('Could not parse AI response');
   }
 
-  const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-  return parsed;
+  return JSON.parse(jsonMatch[1] || jsonMatch[0]);
 }
 
+// Analyze single video
 app.post('/analyze', async (req, res) => {
   const videoUrl = req.body.videoUrl;
-  function scanDescription(description, tools) {
-  const lowerDesc = description.toLowerCase();
-  const detected = [];
-
-  tools.forEach((tool) => {
-    const match = tool.aliases.some((alias) => lowerDesc.includes(alias));
-    if (match) {
-      detected.push({
-        name: tool.name,
-        category: tool.category,
-        confidence: 'Confirmed'
-      });
-    }
-  });
-
-  return detected;
-}
   const videoId = extractVideoId(videoUrl);
 
   if (!videoId) {
@@ -230,7 +308,6 @@ app.post('/analyze', async (req, res) => {
     let analysis;
 
     try {
-      // Try AI analysis first
       analysis = await analyzeWithOpenRouter(videoData);
     } catch (aiError) {
       console.warn('AI analysis failed, falling back to rule-based:', aiError.message);
@@ -247,12 +324,12 @@ app.post('/analyze', async (req, res) => {
       };
     }
 
-        // Override audience size with our own niche estimate
-    // to avoid showing raw video views from the AI model.
+    // Override audience size with our own niche estimate
     const viewCountForAudience = parseInt(videoData.viewCount) || 0;
     const estimatedNicheAudience = viewCountForAudience * 20;
     analysis.metrics.audience = formatAudienceSize(estimatedNicheAudience);
-        res.json({
+
+    res.json({
       url: videoUrl,
       video: videoData,
       metrics: analysis.metrics,
@@ -262,6 +339,56 @@ app.post('/analyze', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to analyze video. Make sure the URL is valid and API keys are correct.' });
+  }
+});
+
+// Analyze channel
+app.post('/analyze-channel', async (req, res) => {
+  const channelInput = req.body.channelUrl;
+  const identifier = extractChannelIdentifier(channelInput);
+
+  if (!identifier) {
+    return res.status(400).json({ error: 'Invalid YouTube channel URL or handle.' });
+  }
+
+  try {
+    const channelData = await getChannelData(identifier);
+    const videos = await getChannelVideos(channelData.uploadsPlaylistId, 10);
+
+    const toolAggregation = {};
+
+    videos.forEach(video => {
+      const detected = scanDescription(video.description, toolsDatabase);
+      detected.forEach(tool => {
+        if (!toolAggregation[tool.name]) {
+          toolAggregation[tool.name] = {
+            category: tool.category,
+            count: 0
+          };
+        }
+        toolAggregation[tool.name].count += 1;
+      });
+    });
+
+    const detectedTools = Object.keys(toolAggregation).map(name => ({
+      name,
+      category: toolAggregation[name].category,
+      count: toolAggregation[name].count,
+      confidence: 'Confirmed'
+    })).sort((a, b) => b.count - a.count);
+
+    res.json({
+      channel: {
+        title: channelData.title,
+        subscriberCount: channelData.subscriberCount,
+        videoCount: channelData.videoCount
+      },
+      videosAnalyzed: videos.length,
+      detectedTools
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to analyze channel. Make sure the channel URL is valid and API key is correct.' });
   }
 });
 
