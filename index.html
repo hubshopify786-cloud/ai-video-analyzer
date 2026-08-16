@@ -22,6 +22,15 @@
       <button id="analyzeChannelBtn">Analyze Channel</button>
     </div>
 
+    <div id="compareForm" style="margin-top: 2rem;">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚖️ Channel Comparison</h2>
+      <p>Compare the tool stacks of two YouTube channels.</p>
+      <input id="compareChannel1" type="text" placeholder="First channel URL or @handle">
+      <input id="compareChannel2" type="text" placeholder="Second channel URL or @handle">
+      <p id="compareError" hidden style="color: #ef4444; font-size: 0.9rem;"></p>
+      <button id="compareBtn">Compare Channels</button>
+    </div>
+
     <div id="loading" hidden>
       <div class="spinner"></div>
       <p>Analyzing video...</p>
@@ -30,6 +39,11 @@
     <div id="channelLoading" hidden>
       <div class="spinner"></div>
       <p>Analyzing channel...</p>
+    </div>
+
+    <div id="compareLoading" hidden>
+      <div class="spinner"></div>
+      <p>Comparing channels...</p>
     </div>
 
     <div id="dashboard" hidden>
@@ -88,6 +102,22 @@
       </div>
       <h3 style="text-align: center; margin: 1rem 0;">🛠️ Tools Detected Across Channel</h3>
       <div id="channelToolsContainer" class="tools"></div>
+    </div>
+
+    <div id="compareDashboard" hidden>
+      <h2>⚖️ Comparison Results</h2>
+      <div class="compare-container">
+        <div class="compare-column">
+          <h3 id="compareTitle1"></h3>
+          <p id="compareStats1"></p>
+          <div id="compareTools1" class="tools"></div>
+        </div>
+        <div class="compare-column">
+          <h3 id="compareTitle2"></h3>
+          <p id="compareStats2"></p>
+          <div id="compareTools2" class="tools"></div>
+        </div>
+      </div>
     </div>
   </div>
 

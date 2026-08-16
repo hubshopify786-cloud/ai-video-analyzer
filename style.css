@@ -279,3 +279,54 @@ button:active {
     width: 100%;
   }
 }
+.compare-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.compare-column {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.compare-column h3 {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.compare-column p {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .compare-container {
+    grid-template-columns: 1fr;
+  }
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.badge.shared {
+  background-color: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.badge.unique {
+  background-color: rgba(79, 140, 255, 0.15);
+  color: #4f8cff;
+  border: 1px solid rgba(79, 140, 255, 0.3);
+}

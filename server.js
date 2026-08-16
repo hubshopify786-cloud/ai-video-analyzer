@@ -391,7 +391,75 @@ app.post('/analyze-channel', async (req, res) => {
     res.status(500).json({ error: 'Failed to analyze channel. Make sure the channel URL is valid and API key is correct.' });
   }
 });
+app.post('/compare-channels', async (req, res) => {
+  const channelInput1 = req.body.channel1;
+  const channelInput2 = req.body.channel2;
 
+  const identifier1 = extractChannelIdentifier(channelInput1);
+  const identifier2 = extractChannelIdentifier(channelInput2);
+
+  if (!identifier1 || !identifier2) {
+    return res.status(400).json({ error: 'Invalid channel URL or handle for one or both channels.' });
+  }
+
+  try {
+    const [channelData1, channelData2] = await Promise.all([
+      getChannelData(identifier1),
+      getChannelData(identifier2)
+    ]);
+
+    const [videos1, videos2] = await Promise.all([
+      getChannelVideos(channelData1.uploadsPlaylistId, 10),
+      getChannelVideos(channelData2.uploadsPlaylistId, 10)
+    ]);
+
+    function aggregateTools(videos) {
+      const toolAggregation = {};
+      videos.forEach(video => {
+        const detected = scanDescription(video.description, toolsDatabase);
+        detected.forEach(tool => {
+          if (!toolAggregation[tool.name]) {
+            toolAggregation[tool.name] = {
+              category: tool.category,
+              count: 0
+            };
+          }
+          toolAggregation[tool.name].count += 1;
+        });
+      });
+
+      return Object.keys(toolAggregation).map(name => ({
+        name,
+        category: toolAggregation[name].category,
+        count: toolAggregation[name].count,
+        confidence: 'Confirmed'
+      })).sort((a, b) => b.count - a.count);
+    }
+
+    const tools1 = aggregateTools(videos1);
+    const tools2 = aggregateTools(videos2);
+
+    res.json({
+      channel1: {
+        title: channelData1.title,
+        subscriberCount: channelData1.subscriberCount,
+        videoCount: channelData1.videoCount,
+        videosAnalyzed: videos1.length,
+        detectedTools: tools1
+      },
+      channel2: {
+        title: channelData2.title,
+        subscriberCount: channelData2.subscriberCount,
+        videoCount: channelData2.videoCount,
+        videosAnalyzed: videos2.length,
+        detectedTools: tools2
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to compare channels. Make sure the URLs are valid and API key is correct.' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

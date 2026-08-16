@@ -5,7 +5,6 @@ const videoUrlInput = document.getElementById('videoUrl');
 const urlDisplay = document.getElementById('urlDisplay');
 const errorMsg = document.getElementById('errorMsg');
 
-// Metric elements
 const metricNiche = document.getElementById('metricNiche');
 const metricAudience = document.getElementById('metricAudience');
 const metricCompetition = document.getElementById('metricCompetition');
@@ -13,11 +12,10 @@ const metricSaturation = document.getElementById('metricSaturation');
 const metricRPM = document.getElementById('metricRPM');
 const metricGrowth = document.getElementById('metricGrowth');
 
-// Video info elements
 const videoTitle = document.getElementById('videoTitle');
 const videoChannel = document.getElementById('videoChannel');
 const videoStats = document.getElementById('videoStats');
-// Channel analysis elements
+
 const channelForm = document.getElementById('channelForm');
 const channelUrlInput = document.getElementById('channelUrl');
 const channelError = document.getElementById('channelError');
@@ -28,11 +26,22 @@ const channelTitle = document.getElementById('channelTitle');
 const channelStats = document.getElementById('channelStats');
 const channelToolsContainer = document.getElementById('channelToolsContainer');
 
-// Tools container
+const compareChannel1 = document.getElementById('compareChannel1');
+const compareChannel2 = document.getElementById('compareChannel2');
+const compareError = document.getElementById('compareError');
+const compareBtn = document.getElementById('compareBtn');
+const compareLoading = document.getElementById('compareLoading');
+const compareDashboard = document.getElementById('compareDashboard');
+const compareTitle1 = document.getElementById('compareTitle1');
+const compareStats1 = document.getElementById('compareStats1');
+const compareTools1 = document.getElementById('compareTools1');
+const compareTitle2 = document.getElementById('compareTitle2');
+const compareStats2 = document.getElementById('compareStats2');
+const compareTools2 = document.getElementById('compareTools2');
+
 const toolsContainer = document.getElementById('toolsContainer');
 const detectedToolsContainer = document.getElementById('detectedToolsContainer');
 
-// Render tools from server response
 function renderDetectedTools(detectedTools) {
   detectedToolsContainer.innerHTML = '';
 
@@ -64,6 +73,7 @@ function renderDetectedTools(detectedTools) {
     detectedToolsContainer.appendChild(toolDiv);
   });
 }
+
 function renderChannelTools(tools) {
   channelToolsContainer.innerHTML = '';
 
@@ -94,6 +104,7 @@ function renderChannelTools(tools) {
     channelToolsContainer.appendChild(toolDiv);
   });
 }
+
 function renderTools(tools) {
   toolsContainer.innerHTML = '';
 
@@ -114,6 +125,46 @@ function renderTools(tools) {
   });
 }
 
+function renderCompareTools(container, tools, sharedNames, videosAnalyzed) {
+  container.innerHTML = '';
+
+  if (tools.length === 0) {
+    container.innerHTML = '<p style="color: #b0b3b8; text-align: center;">No known tools detected.</p>';
+    return;
+  }
+
+  const safeVideos = Math.max(1, videosAnalyzed);
+
+  tools.forEach(function (tool) {
+    const toolDiv = document.createElement('div');
+    toolDiv.className = 'tool';
+
+    const toolName = document.createElement('h3');
+    toolName.textContent = tool.name;
+
+    const isShared = sharedNames.includes(tool.name);
+    const badge = document.createElement('span');
+    badge.textContent = isShared ? 'Shared' : 'Unique';
+    badge.className = isShared ? 'badge shared' : 'badge unique';
+    toolName.appendChild(badge);
+
+    const toolCategory = document.createElement('p');
+    toolCategory.textContent = tool.category;
+
+    const percentage = Math.round((tool.count / safeVideos) * 100);
+    const count = document.createElement('p');
+    count.textContent = `Found in ${tool.count} video(s) (${percentage}%)`;
+    count.style.color = '#4ade80';
+    count.style.fontWeight = '600';
+
+    toolDiv.appendChild(toolName);
+    toolDiv.appendChild(toolCategory);
+    toolDiv.appendChild(count);
+
+    container.appendChild(toolDiv);
+  });
+}
+
 analyzeBtn.addEventListener('click', async function () {
   const videoUrl = videoUrlInput.value.trim();
 
@@ -126,10 +177,10 @@ analyzeBtn.addEventListener('click', async function () {
   errorMsg.hidden = true;
   urlDisplay.textContent = `Video URL: ${videoUrl}`;
 
-  // Show loading, hide dashboard and channel dashboard
   loading.hidden = false;
   dashboard.hidden = true;
   channelDashboard.hidden = true;
+  compareDashboard.hidden = true;
 
   try {
     const response = await fetch('/analyze', {
@@ -142,7 +193,6 @@ analyzeBtn.addEventListener('click', async function () {
 
     const data = await response.json();
 
-    // Update video info
     if (data.video) {
       videoTitle.textContent = data.video.title;
       videoChannel.textContent = `Channel: ${data.video.channel}`;
@@ -153,7 +203,6 @@ analyzeBtn.addEventListener('click', async function () {
       videoStats.textContent = '';
     }
 
-    // Update metrics with server response
     metricNiche.textContent = data.metrics.niche;
     metricAudience.textContent = data.metrics.audience;
     metricCompetition.textContent = data.metrics.competition;
@@ -161,12 +210,9 @@ analyzeBtn.addEventListener('click', async function () {
     metricRPM.textContent = data.metrics.rpm;
     metricGrowth.textContent = data.metrics.growth;
 
-            // Render detected tools from description
     renderDetectedTools(data.detectedTools);
-
-    // Render tools from server
     renderTools(data.tools);
-       
+
     loading.hidden = true;
     dashboard.hidden = false;
   } catch (error) {
@@ -176,6 +222,7 @@ analyzeBtn.addEventListener('click', async function () {
     console.error(error);
   }
 });
+
 analyzeChannelBtn.addEventListener('click', async function () {
   const channelUrl = channelUrlInput.value.trim();
 
@@ -187,10 +234,10 @@ analyzeChannelBtn.addEventListener('click', async function () {
 
   channelError.hidden = true;
 
-  // Hide video dashboard, show channel loading
   dashboard.hidden = true;
   channelDashboard.hidden = true;
-  loading.hidden = true; // hide video loading if any
+  compareDashboard.hidden = true;
+  loading.hidden = true;
   channelLoading.hidden = false;
 
   try {
@@ -208,11 +255,9 @@ analyzeChannelBtn.addEventListener('click', async function () {
       throw new Error(data.error);
     }
 
-    // Update channel info
     channelTitle.textContent = data.channel.title;
     channelStats.textContent = `Subscribers: ${Number(data.channel.subscriberCount).toLocaleString()} | Videos: ${Number(data.channel.videoCount).toLocaleString()} | Analyzed: ${data.videosAnalyzed}`;
 
-    // Render detected tools
     renderChannelTools(data.detectedTools);
 
     channelLoading.hidden = true;
@@ -224,6 +269,66 @@ analyzeChannelBtn.addEventListener('click', async function () {
     console.error(error);
   }
 });
+
+compareBtn.addEventListener('click', async function () {
+  const channel1 = compareChannel1.value.trim();
+  const channel2 = compareChannel2.value.trim();
+
+  if (channel1 === '' || channel2 === '') {
+    compareError.textContent = 'Please paste both channel URLs or handles.';
+    compareError.hidden = false;
+    return;
+  }
+
+  compareError.hidden = true;
+
+  dashboard.hidden = true;
+  channelDashboard.hidden = true;
+  compareDashboard.hidden = true;
+  loading.hidden = true;
+  channelLoading.hidden = true;
+  compareLoading.hidden = false;
+
+  try {
+    const response = await fetch('/compare-channels', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ channel1, channel2 })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    const tools1 = data.channel1.detectedTools;
+    const tools2 = data.channel2.detectedTools;
+
+    const names1 = tools1.map(t => t.name);
+    const names2 = tools2.map(t => t.name);
+    const sharedNames = names1.filter(name => names2.includes(name));
+
+    compareTitle1.textContent = data.channel1.title;
+    compareStats1.textContent = `Subscribers: ${Number(data.channel1.subscriberCount).toLocaleString()} | Videos Analyzed: ${data.channel1.videosAnalyzed}`;
+    renderCompareTools(compareTools1, tools1, sharedNames, data.channel1.videosAnalyzed);
+
+    compareTitle2.textContent = data.channel2.title;
+    compareStats2.textContent = `Subscribers: ${Number(data.channel2.subscriberCount).toLocaleString()} | Videos Analyzed: ${data.channel2.videosAnalyzed}`;
+    renderCompareTools(compareTools2, tools2, sharedNames, data.channel2.videosAnalyzed);
+
+    compareLoading.hidden = true;
+    compareDashboard.hidden = false;
+  } catch (error) {
+    compareLoading.hidden = true;
+    compareError.textContent = error.message || 'Something went wrong. Is the server running?';
+    compareError.hidden = false;
+    console.error(error);
+  }
+});
+
 videoUrlInput.addEventListener('input', function () {
   errorMsg.hidden = true;
 });
