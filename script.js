@@ -45,15 +45,18 @@ function setLoading(isLoading, progress = null) {
   if (isLoading) {
     btn.disabled = true;
     btn.textContent = progress ? `Analyzing… ${progress}` : 'Analyzing…';
-    loadingState.style.display = 'block';
+    loadingState.style.display = 'flex';
     if (progress) {
-      loadingState.textContent = progress;
+      // Update the message span (first child) without removing the Cancel button
+      const span = loadingState.querySelector('span');
+      if (span) span.textContent = progress;
     }
   } else {
     btn.disabled = false;
-    btn.textContent = 'Analyze Channel →';
+    btn.textContent = 'Get Roadmap →';
     loadingState.style.display = 'none';
-    loadingState.textContent = 'Analyzing channel… fetching last 30 videos…';
+    const span = loadingState.querySelector('span');
+    if (span) span.textContent = 'Analyzing channel… fetching last 30 videos…';
   }
 }
 
