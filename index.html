@@ -3,86 +3,302 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Video Analyzer</title>
+  <title>CloneThis — AI Channel Cloning Engine</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="main-container">
-    <h1>AI Video Analyzer</h1>
-    <p>Paste a YouTube channel to reverse-engineer its format and get a clone playbook.</p>
 
-    <div id="cloneForm">
-      <input id="channelUrl" type="text" placeholder="Channel URL or @handle">
-      <p id="channelError" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
-      <button id="cloneBtn">Clone Channel</button>
-    </div>
+  <!-- SCREEN 1 — LANDING -->
+  <div id="screen-landing" class="screen" style="display:block;">
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">CloneThis — AI Channel Cloning Engine</div>
+        <h1>Clone any AI-made<br>YouTube channel.</h1>
+        <p class="hero-sub">
+          Paste a channel URL. Get the exact topic prompts, script template,
+          image prompts, voice settings, and assembly workflow to create that
+          same type of video yourself — today.
+        </p>
 
-    <div id="loading" hidden>
-      <div class="spinner"></div>
-      <p>Analyzing channel...</p>
-    </div>
-
-    <!-- Disqualified state: reasons + alternative suggestions -->
-    <div id="disqualifiedDashboard" hidden>
-      <h2>Channel Not Yet Cloneable</h2>
-      <p style="margin-bottom: 1rem;">This channel doesn't fit our supported AI-producible niches yet. Here's why:</p>
-      <ul id="reasonsList" class="reasons-list"></ul>
-
-      <h3 style="text-align: center; margin: 2rem 0 1rem;">💡 Try One of These Instead</h3>
-      <div id="suggestionsContainer" class="tools"></div>
-    </div>
-
-    <!-- Qualified state: channel card + tool stack + 5-step playbook -->
-    <div id="cloneDashboard" hidden>
-      <h2>Channel Clone Card</h2>
-
-      <div class="video-info">
-        <div class="channel-header">
-          <h3 id="channelName"></h3>
-          <span id="confidenceBadge" class="badge confidence"></span>
+        <!-- URL input + Analyze button -->
+        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap;">
+          <input
+            class="url-input"
+            id="channelUrl"
+            type="url"
+            placeholder="https://www.youtube.com/@YourChannelHere"
+            style="flex:1; min-width:260px;"
+          />
+          <button class="btn-primary" id="analyzeBtn">
+            Analyze Channel →
+          </button>
         </div>
-        <p id="channelStats" class="stats-row"></p>
-        <p id="channelRevenue" class="stats-row" style="color: #4ade80; font-weight: 600;"></p>
-        <p id="channelNiche"></p>
+
+        <!-- Loading state (hidden by default, shown while API runs) -->
+        <div id="loadingState" style="display:none; margin-top:20px; color:var(--muted); font-size:14px;">
+          Analyzing channel… fetching last 30 videos…
+        </div>
+      </header>
+
+      <!-- Example preview panel -->
+      <section class="section" style="margin-top:24px;">
+        <div class="section-head">
+          <div class="number">?</div>
+          <div>
+            <h2>What you'll get</h2>
+            <div class="section-kicker">Example output for Uncharted Mysteries</div>
+          </div>
+        </div>
+        <div class="channel">
+          <strong>Uncharted Mysteries</strong> — Ancient Mysteries / Dark History
+        </div>
+        <p style="color:var(--muted);">
+          291K subscribers · 84 videos · ~$9,500/mo est. · 1 upload/week
+        </p>
+        <p>
+          Paste a qualifying channel URL above and get the complete 5-step
+          AI production workflow: topic prompt → script prompt → image prompt
+          → voice settings → assembly guide. Ready to use immediately.
+        </p>
+        <div class="tip">
+          <strong>Which channels qualify?</strong> The channel must be
+          monetised, primarily AI-made, follow a repeatable format, and have
+          50+ videos. Reaction, vlog, and live channels are not supported.
+        </div>
+      </section>
+
+      <div class="footer">CloneThis — AI Channel Cloning Engine</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 2 — DISQUALIFIED -->
+  <div id="screen-disqualified" class="screen" style="display:none;">
+    <main class="page">
+      <div class="disqualified">
+        <div class="eyebrow" style="color:var(--orange);">Channel not supported</div>
+        <h2 style="color:var(--orange); margin-top:10px;">This channel doesn't qualify</h2>
+        <p id="disqualReason" style="color:var(--muted); font-size:16px; margin-top:8px;">
+          <!-- Populated dynamically -->
+        </p>
       </div>
 
-      <div class="metrics">
-        <div class="metric">
-          <h3>🎨 Format Fingerprint</h3>
-          <p id="metricFormat"></p>
+      <!-- Alternative channel suggestions (hardcoded for Phase 1) -->
+      <section class="section" style="margin-top:24px;">
+        <div class="section-head">
+          <div class="number blue">→</div>
+          <div>
+            <h2>Try one of these qualifying channels</h2>
+            <div class="section-kicker">All confirmed AI-producible and revenue-generating</div>
+          </div>
         </div>
-        <div class="metric">
-          <h3>🎬 Pacing Style</h3>
-          <p id="metricPacing"></p>
+
+        <!-- Suggestion cards (one per niche) — hardcoded for Phase 1 -->
+        <div class="stats" style="grid-template-columns: repeat(3,1fr);">
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@TheUnchartedMysteries')">
+            <strong style="font-size:16px;">Uncharted Mysteries</strong>
+            <span>Ancient Mysteries / Dark History</span>
+          </div>
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@AndreiJikh')">
+            <strong style="font-size:16px;">Andrei Jikh</strong>
+            <span>Personal Finance</span>
+          </div>
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@JCSCriminalPsychology')">
+            <strong style="font-size:16px;">JCS Criminal Psychology</strong>
+            <span>True Crime</span>
+          </div>
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@YellowBrickCinema')">
+            <strong style="font-size:16px;">Yellow Brick Cinema</strong>
+            <span>Sleep / Ambient</span>
+          </div>
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@AIExplained-9w8')">
+            <strong style="font-size:16px;">AI Explained</strong>
+            <span>AI & Tech Explainers</span>
+          </div>
+
+          <div class="stat" style="cursor:pointer;"
+               onclick="prefillAndAnalyze('https://www.youtube.com/@ColdFusion')">
+            <strong style="font-size:16px;">ColdFusion</strong>
+            <span>Business Case Studies</span>
+          </div>
+
         </div>
-        <div class="metric">
-          <h3>🖼️ Visual Approach</h3>
-          <p id="metricVisual"></p>
-        </div>
+      </section>
+
+      <div style="margin-top:24px; text-align:center;">
+        <button class="btn-primary" onclick="showScreen('landing')" style="background:var(--panel); color:var(--text); border:1px solid var(--border);">
+          ← Try a different channel
+        </button>
       </div>
 
-      <div class="info-block">
-        <h3>🧠 Why This Format Works</h3>
+      <div class="footer">CloneThis — AI Channel Cloning Engine</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 3 — RESULTS (Channel Card + 5 Steps) -->
+  <div id="screen-results" class="screen" style="display:none;">
+    <main class="page">
+
+      <!-- CHANNEL CARD (hero) -->
+      <header class="hero" id="channelCard">
+        <div class="eyebrow" id="resultNiche">
+          <!-- e.g. "Ancient Mysteries / Dark History • Production System" -->
+        </div>
+        <h1 id="resultHeadline">
+          <!-- e.g. "One Video a Week = $9,500/Month" -->
+        </h1>
+        <p class="hero-sub" id="resultFormat">
+          <!-- e.g. "90-100 min chaptered countdown documentary (7-12 mysteries per video)" -->
+        </p>
+        <div class="stats">
+          <div class="stat">
+            <strong id="statSubs"></strong>
+            <span>subscribers</span>
+          </div>
+          <div class="stat">
+            <strong id="statVideos"></strong>
+            <span>videos</span>
+          </div>
+          <div class="stat">
+            <strong id="statRevenue"></strong>
+            <span>est. / month</span>
+          </div>
+          <div class="stat">
+            <strong id="statCadence"></strong>
+            <span>upload cadence</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN WORKFLOW SECTION -->
+      <section class="section">
+        <div class="section-head">
+          <div class="number">1</div>
+          <div>
+            <h2>THE CHANNEL (study it first)</h2>
+            <div class="section-kicker">Reference channel and production model</div>
+          </div>
+        </div>
+
+        <div class="channel" id="channelRef">
+          <!-- Populated: <strong>Channel Name:</strong> <a href="...">url</a> -->
+        </div>
+
+        <p id="channelSummaryLine"></p>
+        <!-- e.g. "85 videos → 292K subscribers → est. $9,500/mo → ~7 days uploads" -->
+
         <p id="whyItWorks"></p>
+        <!-- e.g. "<strong>Why it works:</strong> Mid-roll ads across 90 min = 6-8× the ad revenue…" -->
+
+        <p><strong>Watch 15 minutes of their top video before starting.</strong>
+        Notice the narration pace, visual style, and chapter structure.</p>
+
+        <div class="divider"></div>
+
+        <!-- STEP 1 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="prompt-label">STEP 1</span>
+            <h3>Step 1 — Topic Prompt</h3>
+          </div>
+          <div class="copy-card">
+            <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+            <pre id="prompt1"></pre>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="prompt-label">STEP 2</span>
+            <h3>Step 2 — Script Prompt</h3>
+          </div>
+          <div class="copy-card">
+            <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+            <pre id="prompt2"></pre>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="prompt-label">STEP 3</span>
+            <h3>Step 3 — Image Prompt</h3>
+          </div>
+          <div class="copy-card">
+            <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+            <pre id="prompt3"></pre>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="prompt-label">STEP 4</span>
+            <h3>Step 4 — Voice Settings</h3>
+          </div>
+          <div class="copy-card">
+            <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+            <pre id="prompt4"></pre>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step">
+          <div class="step-title">
+            <span class="prompt-label">STEP 5</span>
+            <h3>Step 5 — Assembly Workflow</h3>
+          </div>
+          <div class="copy-card">
+            <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
+            <pre id="prompt5"></pre>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- THE HONEST PART -->
+      <section class="section">
+        <div class="section-head">
+          <div class="number orange">!</div>
+          <div>
+            <h2>THE HONEST PART</h2>
+            <div class="section-kicker">The long-term rule</div>
+          </div>
+        </div>
+        <div class="copy-card">
+          <p style="margin:0; color:#dfe5ef;">
+            This system removes the production barrier. It doesn't remove the
+            consistency requirement. Keep the content honest. Real unexplained
+            things are fascinating enough. The moment a channel invents or
+            misleads, the audience and the algorithm both leave.
+          </p>
+        </div>
+      </section>
+
+      <!-- Export + back -->
+      <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;">
+        <button class="btn-primary" onclick="exportWorkflow()">
+          Export all 5 steps (.txt)
+        </button>
+        <button class="btn-primary"
+          style="background:var(--panel); color:var(--text); border:1px solid var(--border);"
+          onclick="showScreen('landing')">
+          ← Analyze another channel
+        </button>
       </div>
 
-      <div id="toolStackSection">
-        <h2>🛠️ Recommended AI Tool Stack</h2>
-        <div id="toolStackContainer" class="tools"></div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-      <h2>📋 5-Step Clone Playbook</h2>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <button id="exportHtmlBtn" class="export-btn">📥 HTML</button>
-      <button id="exportPdfBtn" class="export-btn">📄 PDF</button>
-      <button id="exportDocxBtn" class="export-btn">📝 DOCX</button>
-      </div>
-      </div>
-      <p style="margin-bottom: 1.5rem;">Copy each prompt or export the full playbook as a styled HTML file.</p>
-      <div id="promptsContainer" class="prompts-grid"></div>
-      </div>
-    </div>
+      <div class="footer">Generated by CloneThis — AI Channel Cloning Engine</div>
+    </main>
   </div>
 
   <script src="script.js"></script>

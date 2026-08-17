@@ -23,7 +23,7 @@ const niches = [
     rpm: 9,
     videoLengthMin: 60,
     videoLengthMax: 120,
-    keywords: ['mystery', 'mysteries', 'ancient', 'unexplained', 'dark history', 'documentary', 'impossible', 'discoveries'],
+    keywords: ['mystery', 'mysteries', 'ancient', 'unexplained', 'dark history', 'documentary', 'impossible', 'discoveries', 'lost civilization', 'forbidden archaeology', 'ancient aliens', 'megalithic', 'prehistory', 'antediluvian', 'hidden history', 'conspiracy', 'cover up', 'secret history', 'archaeology', 'ruins', 'artifacts', 'anomalies'],
     aiTools: [
       { name: 'Claude', purpose: 'Script writing' },
       { name: 'ElevenLabs', purpose: 'Voiceover (high stability)' },
@@ -34,8 +34,244 @@ const niches = [
     formatFingerprint: '90-100 min chaptered countdown documentary (7-12 mysteries per video)',
     pacingStyle: 'Calm, atmospheric, slow — sleep and background content',
     visualApproach: 'Cinematic stills + Ken Burns slow zoom · muted earth tones · golden hour lighting'
+  },
+  {
+    id: 'personal-finance',
+    name: 'Personal Finance Explainers',
+    rpm: 30,
+    videoLengthMin: 10,
+    videoLengthMax: 40,
+    keywords: ['finance', 'investing', 'debt', 'budgeting', 'money', 'stocks', 'wealth', 'passive income', 'retirement', 'economy', 'personal finance', 'financial freedom', 'compound interest', 'index fund', 'etf', '401k', 'ira', 'roth ira', 'dividend', 'crypto', 'bitcoin', 'real estate investing', 'house hacking', 'fire movement', 'side hustle', 'credit score', 'loan', 'mortgage', 'insurance', 'tax', 'inflation', 'recession', 'bear market', 'bull market', 'portfolio', 'asset allocation', 'dollar cost averaging'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Canva', purpose: 'Visuals & animations' },
+      { name: 'DaVinci Resolve', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Highest-CPM faceless niche. Animated graphics + AI voiceover. 10-20 min videos attract advertisers at premium rates.',
+    formatFingerprint: '10-20 min animated explainer with AI voiceover',
+    pacingStyle: 'Clear, educational, medium pace',
+    visualApproach: 'Animated graphics, screen capture, simple charts'
+  },
+  {
+    id: 'true-crime',
+    name: 'True Crime Documentaries',
+    rpm: 10,
+    videoLengthMin: 30,
+    videoLengthMax: 60,
+    keywords: ['true crime', 'murder', 'mystery', 'case', 'crime documentary', 'investigation', 'court', 'police', 'killer', 'disappearance', 'serial killer', 'cold case', 'missing person', 'homicide', 'detective', 'forensic', 'evidence', 'trial', 'verdict', 'prison', 'inmate', 'victim', 'survivor', 'unsolved', 'investigative', 'criminology', 'psychology', 'profiling', 'dna', 'witness', 'testimony', 'alibi', 'motive'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Midjourney', purpose: 'AI visuals for reconstructions' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Highest average watch time on the platform. Viewers binge entire playlists. 30-60 min deep dives.',
+    formatFingerprint: '30-60 min deep dives with archival photos, maps, court documents',
+    pacingStyle: 'Suspenseful but respectful, steady narration',
+    visualApproach: 'Archival footage + AI image reconstructions'
+  },
+  {
+    id: 'sleep-meditation',
+    name: 'Sleep & Meditation Content',
+    rpm: 5.5,
+    videoLengthMin: 60,
+    videoLengthMax: 480,
+    keywords: ['sleep', 'meditation', 'relax', 'calm', 'ambient', 'rain', 'healing', 'frequency', 'insomnia', 'deep sleep', 'bedtime', 'goodnight', 'asmr', 'white noise', 'brown noise', 'nature sounds', 'sleep music', 'sleep story', 'relaxation', 'mindfulness', 'zen', 'yoga', 'breathing', 'guided meditation', 'binaural beats', 'delta waves', 'theta waves', '432 hz', '528 hz', 'manifestation', 'affirmations', 'peaceful', 'serene', 'tranquil', 'dream', 'reiki', 'sound bath', 'lofi', 'chill'],
+    aiTools: [
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Suno', purpose: 'Ambient music' },
+      { name: 'Runway', purpose: 'Visuals' },
+      { name: 'Simple editor', purpose: 'Looping assembly' }
+    ],
+    whyItWorks: 'Lowest production barrier. Ambient audio + looping visual + AI voice. 2-8 hour videos. Algorithmic favourite — massive replay value, extreme watch time.',
+    formatFingerprint: '2-8 hour ambient loops with soft voice and calming music',
+    pacingStyle: 'Very slow, hypnotic, soothing',
+    visualApproach: 'Slow-moving dreamlike visuals, starfields, nature scenes'
+  },
+  {
+    id: 'ai-tech',
+    name: 'AI & Tech Explainers',
+    rpm: 14,
+    videoLengthMin: 4,
+    videoLengthMax: 18,
+    keywords: ['ai', 'tech', 'artificial intelligence', 'gpt', 'machine learning', 'tools', 'tutorial', 'future', 'robot', 'software', 'llm', 'large language model', 'chatgpt', 'claude', 'gemini', 'copilot', 'midjourney', 'stable diffusion', 'generative ai', 'deep learning', 'neural network', 'transformer', 'fine tuning', 'prompt engineering', 'ai agent', 'automation', 'coding assistant', 'ai coding', 'cursor', 'vscode', 'github copilot', 'api', 'openai', 'anthropic', 'hugging face', 'pytorch', 'tensorflow', 'computer vision', 'nlp', 'natural language processing', 'ai news', 'ai breakthrough', 'agi', 'artificial general intelligence'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Screen recording', purpose: 'Software demos' },
+      { name: 'CapCut / DaVinci', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Fastest-growing niche in 2026. Screen recordings + AI voice + simple animation. 5-15 min format.',
+    formatFingerprint: '5-15 min screen recordings with AI voice',
+    pacingStyle: 'Clear, informative, moderately fast',
+    visualApproach: 'Screen capture, simple animations, tool demos'
+  },
+  {
+    id: 'business-case-studies',
+    name: 'Business Case Studies',
+    rpm: 14,
+    videoLengthMin: 15,
+    videoLengthMax: 30,
+    keywords: ['business', 'startup', 'company', 'brand', 'failure', 'success', 'billionaire', 'stock', 'market', 'entrepreneurship', 'case study', 'business model', 'revenue', 'profit', 'ipo', 'acquisition', 'merger', 'unicorn', 'venture capital', 'vc funding', 'series a', 'series b', 'pitch deck', 'founder', 'ceo', 'scale', 'growth', 'disruption', 'innovation', 'strategy', 'monetization', 'saas', 'subscription', 'ecommerce', 'dropshipping', 'amazon fba', 'shopify', 'digital marketing', 'seo', 'content marketing', 'personal brand'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Storyblocks / Pexels', purpose: 'Stock footage' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Startup stories, brand failures, billionaire breakdowns. Stock footage + motion graphics + AI voice. 15-30 min format attracts business advertisers.',
+    formatFingerprint: '15-30 min stock footage + motion graphics',
+    pacingStyle: 'Professional, analytical, structured',
+    visualApproach: 'Stock footage, charts, motion graphics'
+  },
+  {
+    id: 'history-documentaries',
+    name: 'History Documentaries',
+    rpm: 8,
+    videoLengthMin: 20,
+    videoLengthMax: 60,
+    keywords: ['history', 'historical', 'war', 'ancient rome', 'wwii', 'civilization', 'empire', 'battle', 'timeline', 'documentary', 'world war', 'cold war', 'ancient greece', 'egypt', 'mesopotamia', 'viking', 'medieval', 'renaissance', 'revolution', 'independence', 'colonial', 'dynasty', 'king', 'queen', 'emperor', 'pharaoh', 'caesar', 'napoleon', 'hitler', 'churchill', 'roosevelt', 'stalin', 'mao', 'gandhi', 'mandela', 'archaeology', 'artifact', 'ruins', 'excavation', 'ancient', 'prehistory', 'bronze age', 'iron age', 'dark ages', 'enlightenment', 'industrial revolution'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Midjourney', purpose: 'Historical visuals' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Evergreen content with long shelf life. History buffs rewatch. 20-60 min format works well with mid-roll ads.',
+    formatFingerprint: '20-60 min narrated documentaries with maps and archival images',
+    pacingStyle: 'Storytelling, measured, authoritative',
+    visualApproach: 'Maps, archival photos, animated battle lines, artwork'
+  },
+  {
+    id: 'geopolitics',
+    name: 'Geopolitics & World Affairs',
+    rpm: 12,
+    videoLengthMin: 10,
+    videoLengthMax: 25,
+    keywords: ['geopolitics', 'geopolitical', 'china', 'russia', 'usa', 'eu', 'nato', 'trade war', 'sanctions', 'diplomacy', 'foreign policy', 'superpower', 'world order', 'global power', 'international relations', 'conflict', 'war', 'crisis', 'border dispute', 'territorial', 'alliance', 'brics', 'g7', 'g20', 'united nations', 'security council', 'military', 'nuclear', 'arms race', 'proxy war', 'election interference', 'sphere of influence', 'hegemony', 'balance of power', 'sovereignty', 'human rights', 'refugee', 'migration', 'energy security', 'oil', 'gas pipeline', 'taiwan', 'ukraine', 'middle east', 'south china sea', 'korea', 'india', 'pakistan', 'iran', 'israel', 'palestine'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'MapChart / Custom maps', purpose: 'Geopolitical maps' },
+      { name: 'CapCut / DaVinci', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'High engagement from news-aware audience. Map animations + AI voice = low production cost. 10-25 min format.',
+    formatFingerprint: '10-25 min map-heavy analysis with AI narration',
+    pacingStyle: 'Analytical, objective, steady',
+    visualApproach: 'Animated maps, charts, satellite imagery, flags'
+  },
+  {
+    id: 'science-space',
+    name: 'Science & Space',
+    rpm: 7,
+    videoLengthMin: 8,
+    videoLengthMax: 20,
+    keywords: ['space', 'nasa', 'physics', 'astronomy', 'cosmos', 'black hole', 'mars', 'rocket', 'telescope', 'quantum', 'science', 'universe', 'galaxy', 'star', 'planet', 'solar system', 'moon', 'saturn', 'jupiter', 'neptune', 'venus', 'mercury', 'asteroid', 'comet', 'meteor', 'nebula', 'supernova', 'gravity', 'relativity', 'einstein', 'particle', 'atom', 'molecule', 'chemistry', 'biology', 'evolution', 'climate', 'earth', 'antarctica', 'ocean', 'deep sea', 'biology', 'genetics', 'dna', 'theory', 'experiment', 'discovery', 'research', 'scientist', 'lab', 'james webb', 'spacex', 'starship', 'launch', 'orbit', 'space station', 'iss', 'alien', 'extraterrestrial', 'ufo', 'astrophysics', 'cosmology', 'big bang', 'dark matter', 'dark energy'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'NASA / ESA media library', purpose: 'Space footage' },
+      { name: 'Blender / After Effects', purpose: 'Visualizations' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Curiosity-driven, high shareability. Public domain space footage + AI voice. 8-20 min format.',
+    formatFingerprint: '8-20 min space/science explainers with real footage',
+    pacingStyle: 'Wonder-driven, clear, educational',
+    visualApproach: 'NASA/ESA footage, CGI visualizations, data visualizations'
+  },
+  {
+    id: 'psychology-self-improvement',
+    name: 'Psychology & Self-Improvement',
+    rpm: 11,
+    videoLengthMin: 10,
+    videoLengthMax: 20,
+    keywords: ['psychology', 'habits', 'productivity', 'mindset', 'mental health', 'anxiety', 'confidence', 'discipline', 'stoicism', 'behavioral', 'self improvement', 'self help', 'motivation', 'success habits', 'willpower', 'focus', 'attention', 'procrastination', 'depression', 'stress', 'burnout', 'emotional intelligence', 'eq', 'social skills', 'communication', 'charisma', 'self esteem', 'overthinking', 'therapy', 'counseling', 'cognitive', 'neuroscience', 'brain', 'habit loop', 'dopamine', 'dopamine detox', 'cbt', 'journaling', 'goal setting', 'time management', 'minimalism', 'stoic', 'stoicism'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Canva / Motion graphics', purpose: 'Animated concepts' },
+      { name: 'Storyblocks / Pexels', purpose: 'Stock footage' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'High retention, evergreen, shareable. Simple animations + stock footage + AI voice. 10-20 min format.',
+    formatFingerprint: '10-20 min animated concept videos with practical takeaways',
+    pacingStyle: 'Encouraging, clear, actionable',
+    visualApproach: 'Minimal animations, text highlights, stock lifestyle footage'
+  },
+  {
+    id: 'luxury-watches',
+    name: 'Luxury Watches & Collectibles',
+    rpm: 25,
+    videoLengthMin: 8,
+    videoLengthMax: 20,
+    keywords: ['watch', 'rolex', 'patek', 'omega', 'luxury watch', 'horology', 'timepiece', 'collectible', 'investment watch', 'philippe', 'audemars', 'piguet', 'royal oak', 'nautilus', 'submariner', 'daytona', 'datejust', 'gmt', 'master', 'vacheron', 'constantin', 'richard', 'mille', 'grand', 'complications', 'tourbillon', 'perpetual calendar', 'chronograph', 'automatic', 'mechanical', 'quartz', 'spring drive', 'co-axial', 'in-house movement', 'watch review', 'watch collection', 'watch unboxing', 'watch comparison', 'watch investment', 'vintage watch', 'pre owned', 'grey market', 'authorized dealer', 'ad', 'waitlist', 'hulk', 'batman', 'pepsi', 'kermit', 'starbucks', 'spritetimer', 'moonwatch', 'speedmaster', 'seamaster', 'aquanaut'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Manufacturer press kits', purpose: 'Product imagery' },
+      { name: 'DaVinci Resolve', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Ultra-high CPM (luxury advertisers). Passionate niche audience. Macro photography + AI voice. 8-20 min format.',
+    formatFingerprint: '8-20 min macro close-ups with detailed commentary',
+    pacingStyle: 'Appreciative, detailed, connoisseur tone',
+    visualApproach: 'Macro watch photography, manufacturer renders, lifestyle shots'
+  },
+  {
+    id: 'coding-tutorials',
+    name: 'Coding Tutorials & Dev Education',
+    rpm: 18,
+    videoLengthMin: 15,
+    videoLengthMax: 45,
+    keywords: ['coding', 'programming', 'python', 'javascript', 'react', 'tutorial', 'developer', 'software engineering', 'web development', 'api', 'typescript', 'node', 'nodejs', 'express', 'vue', 'angular', 'svelte', 'nextjs', 'frontend', 'backend', 'fullstack', 'full stack', 'database', 'sql', 'postgres', 'mongodb', 'redis', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'cloud', 'devops', 'git', 'github', 'algorithm', 'data structure', 'leetcode', 'clean code', 'refactor', 'debug', 'unit test', 'ci cd', 'rest', 'graphql', 'authentication', 'jwt', 'oauth', 'machine learning', 'data science', 'html', 'css', 'tailwind', 'bootstrap', 'rust', 'go', 'golang', 'java', 'c++', 'swift', 'kotlin', 'mobile', 'ios', 'android', 'flutter', 'react native'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing & code examples' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Screen recording (VS Code)', purpose: 'Code demos' },
+      { name: 'DaVinci Resolve / CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'High-value audience (developers). Screen recording + AI voice = near-zero production cost. 15-45 min deep dives.',
+    formatFingerprint: '15-45 min code-along tutorials with screen recording',
+    pacingStyle: 'Step-by-step, clear, practical',
+    visualApproach: 'Screen capture (IDE), code snippets, terminal output'
+  },
+  {
+    id: 'real-estate-investing',
+    name: 'Real Estate Investing',
+    rpm: 22,
+    videoLengthMin: 10,
+    videoLengthMax: 25,
+    keywords: ['real estate', 'property', 'rental', 'airbnb', 'house hacking', 'reit', 'landlord', 'mortgage', 'cash flow', 'investing', 'realty', 'housing market', 'home prices', 'appreciation', 'depreciation', 'capital gains', 'cap rate', 'roi', 'cash on cash', 'equity', 'leverage', 'down payment', 'escrow', 'closing costs', 'title', 'deed', 'wholesaling', 'flipping', 'fix and flip', 'turnkey', 'multi family', 'multifamily', 'single family', 'commercial real estate', 'industrial', 'retail space', 'office space', 'vacancy rate', 'tenant', 'property management', 'property manager', 'short term rental', 'long term rental', 'mid term rental', 'brrrr', 'brrr', '1031 exchange', 'depreciation', 'amortization', 'hard money', 'private money', 'seller financing', 'subject to', 'lease option', 'rent to own'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Canva / Excel', purpose: 'Deal analysis charts' },
+      { name: 'Storyblocks / Pexels', purpose: 'Property footage' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'High-ticket audience, strong affiliate potential. Charts + property footage + AI voice. 10-25 min format.',
+    formatFingerprint: '10-25 min deal breakdowns with spreadsheets and property tours',
+    pacingStyle: 'Analytical, numbers-driven, practical',
+    visualApproach: 'Spreadsheets, property photos, neighborhood maps, charts'
+  },
+  {
+    id: 'book-summaries',
+    name: 'Book Summaries & Key Insights',
+    rpm: 9,
+    videoLengthMin: 8,
+    videoLengthMax: 18,
+    keywords: ['book summary', 'book review', 'key takeaways', 'lessons from', 'atomic habits', 'psychology of money', 'think and grow rich', 'self help', 'best books', 'must read', 'reading list', 'book recommendation', 'book club', 'summary of', 'the summary', 'main ideas', 'core message', 'author interview', 'biography', 'autobiography', 'memoir', 'nonfiction', 'personal development', 'personal growth', 'business books', 'finance books', 'philosophy books', 'history books', 'science books', 'fiction', 'novel', 'classic literature', 'self improvement books', 'productivity books', 'leadership books', 'mindset books', 'money books', 'investing books', 'health books', 'relationship books'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing (summarize)' },
+      { name: 'ElevenLabs', purpose: 'Voiceover' },
+      { name: 'Canva / Animated graphics', purpose: 'Concept visualizations' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Search-driven traffic, evergreen. Simple animations + AI voice. 8-18 min format covers one book per video.',
+    formatFingerprint: '8-18 min animated summaries with 3-5 key lessons',
+    pacingStyle: 'Concise, insight-focused, structured',
+    visualApproach: 'Animated concept graphics, book covers, quote cards'
   }
-  // Later: finance, true crime, sleep, AI/tech, business
 ];
 
 // Helper: extract channel identifier (already exists)
@@ -50,7 +286,7 @@ function extractChannelIdentifier(input) {
   if (idMatch) return { type: 'id', value: idMatch[1] };
 
   const cMatch = input.match(/youtube\.com\/c\/([^/?]+)/);
-  if (cMatch) return { type: 'handle', value: cMatch[1] }; // /c/ can be a custom name, treat as handle
+  if (cMatch) return { type: 'handle', value: cMatch[1] };
 
   if (input.startsWith('@')) return { type: 'handle', value: input.substring(1) };
   if (input.startsWith('UC')) return { type: 'id', value: input };
@@ -76,7 +312,7 @@ async function getChannelData(identifier) {
   }
 
   const channel = data.items[0];
-      return {
+  return {
     channelId: channel.id,
     title: channel.snippet.title,
     description: channel.snippet.description || '',
@@ -153,7 +389,6 @@ function calculateCadence(videos) {
 function estimateRevenue(videos, cadenceDays, rpm) {
   if (videos.length === 0 || !cadenceDays) return null;
 
-  // Use last 12 videos (approximately 90 days for weekly channel)
   const recent = videos.slice(0, 12);
   if (recent.length === 0) return null;
 
@@ -167,47 +402,66 @@ function estimateRevenue(videos, cadenceDays, rpm) {
   return { low, high, midpoint: monthlyRevenue };
 }
 
-// Helper: classify niche using three-signal scoring
+// Helper: classify niche using three-signal scoring across all niches
 function classifyNiche(channelData, videos) {
-  // For Phase 1, only Ancient Mysteries is defined.
-  const niche = niches[0];
-
-  // Signal 1: title keyword density
   const recentTitles = videos.slice(0, 30).map(v => v.title.toLowerCase());
-  const titleMatches = recentTitles.filter(title =>
-    niche.keywords.some(keyword => title.includes(keyword))
-  ).length;
-  const titleDensity = recentTitles.length > 0 ? titleMatches / recentTitles.length : 0;
 
-  // Signal 2: median video length
-  const durations = videos.slice(0, 30).map(v => durationToMinutes(v.duration));
-  const medianDuration = median(durations);
-  const lengthInRange = medianDuration >= niche.videoLengthMin && medianDuration <= niche.videoLengthMax;
-
-  // Signal 3: channel description keywords
+  // Filter out Shorts (under 3 minutes) for accurate median duration calculation
+  const longFormVideos = videos.slice(0, 30).filter(v => durationToMinutes(v.duration) >= 3);
+  const durations = longFormVideos.map(v => durationToMinutes(v.duration));
+  const medianDuration = durations.length > 0 ? median(durations) : 0;
   const desc = channelData.description.toLowerCase();
-  const descMatches = niche.keywords.filter(keyword => desc.includes(keyword)).length;
 
-  // Weighted scoring (40% title, 35% length, 25% description)
-  const titleScore = titleDensity >= 0.6 ? 1 : titleDensity / 0.6; // scale to 1
-  const lengthScore = lengthInRange ? 1 : 0;
-  const descScore = descMatches > 0 ? 1 : 0;
+  let bestNiche = null;
+  let bestScore = 0;
+  let bestDetails = {};
 
-  const totalScore = (titleScore * 0.4) + (lengthScore * 0.35) + (descScore * 0.25);
+  niches.forEach(niche => {
+    // Signal 1: title keyword density
+    const titleMatches = recentTitles.filter(title =>
+      niche.keywords.some(keyword => title.includes(keyword))
+    ).length;
+    const titleDensity = recentTitles.length > 0 ? titleMatches / recentTitles.length : 0;
+
+    // Signal 2: median video length in range
+    const lengthInRange = medianDuration >= niche.videoLengthMin && medianDuration <= niche.videoLengthMax;
+
+    // Signal 3: channel description keywords
+    const descMatches = niche.keywords.filter(keyword => desc.includes(keyword)).length;
+
+    // Weighted scoring (40% title, 35% length, 25% description)
+    const titleScore = titleDensity >= 0.6 ? 1 : titleDensity / 0.6; // scale to 1
+    const lengthScore = lengthInRange ? 1 : 0;
+    const descScore = descMatches > 0 ? 1 : 0;
+
+    const totalScore = (titleScore * 0.4) + (lengthScore * 0.35) + (descScore * 0.25);
+    console.log(`Niche ${niche.name}: score=${totalScore.toFixed(3)}, titleDensity=${titleDensity.toFixed(2)}, lengthInRange=${lengthInRange}, descMatches=${descMatches}, medianDuration=${medianDuration.toFixed(1)}`);
+    if (totalScore > bestScore) {
+      bestScore = totalScore;
+      bestNiche = niche;
+      bestDetails = {
+        titleDensity,
+        medianDuration,
+        lengthInRange,
+        descMatches
+      };
+    }
+  });
 
   let confidence = 'low';
-  if (totalScore >= 0.75) confidence = 'high';
-  else if (totalScore >= 0.5) confidence = 'medium';
+  if (bestScore >= 0.75) confidence = 'high';
+  else if (bestScore >= 0.5) confidence = 'medium';
 
-  const matched = totalScore >= 0.5;
+  const matched = bestScore >= 0.5;
 
   return {
-    niche: matched ? niche : null,
+    niche: matched ? bestNiche : null,
     confidence,
-    titleDensity,
-    medianDuration,
-    lengthInRange,
-    descMatches
+    titleDensity: bestDetails.titleDensity || 0,
+    medianDuration: bestDetails.medianDuration || 0,
+    lengthInRange: bestDetails.lengthInRange || false,
+    descMatches: bestDetails.descMatches || 0,
+    score: bestScore
   };
 }
 
@@ -234,8 +488,6 @@ function buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult
   const recentViews = videos.slice(0, 12).map(v => v.viewCount);
   const avgViews = recentViews.length > 0 ? recentViews.reduce((a, b) => a + b, 0) / recentViews.length : 0;
 
-  const toolStack = niche.aiTools; // For Phase 1 hardcoded per niche
-
   return {
     name: channelData.title,
     url: `https://www.youtube.com/channel/${channelData.channelId}`,
@@ -249,15 +501,14 @@ function buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult
     pacingStyle: niche.pacingStyle,
     visualApproach: niche.visualApproach,
     whyItWorks: niche.whyItWorks,
-    aiToolStack: toolStack
+    aiToolStack: niche.aiTools
   };
 }
 
-// Build 5-step prompt templates (Phase 1: filled with niche defaults)
+// Build 5-step prompt templates using niche data
 function buildPromptTemplates(niche, channelData, videos) {
-  // Extract common title pattern: most frequent words/length pattern (simple)
   const titles = videos.slice(0, 30).map(v => v.title);
-  const titlePattern = titles.length > 0 ? titles[0] : 'Sample title'; // placeholder
+  const titlePattern = titles.length > 0 ? titles[0] : 'Sample title';
 
   return {
     step1: {
@@ -266,19 +517,19 @@ function buildPromptTemplates(niche, channelData, videos) {
     },
     step2: {
       title: 'Step 2 — Script Prompt',
-      content: `Paste this into Claude:\nWrite a full ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video on [TOPIC].\nStructure:\n- 7-12 chapters with mystery-like titles\n- Calm, atmospheric narration\n- Include historical context and unexplained details`
+      content: `Paste this into Claude:\nWrite a full ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video on [TOPIC].\nStructure:\n- Follow the format of ${niche.formatFingerprint}\n- Use the pacing style: ${niche.pacingStyle}\n- Include accurate, verifiable facts`
     },
     step3: {
-      title: 'Step 3 — Image Prompt',
-      content: `Paste this into Claude:\nGenerate 20 image prompts for Midjourney/Higgsfield, one per scene.\nStyle: cinematic stills, muted earth tones, golden hour lighting, Ken Burns slow zoom.\nAspect ratio: 16:9`
+      title: 'Step 3 — Visual / Image Prompt',
+      content: `Paste this into Claude:\nGenerate visual prompts for ${niche.aiTools.find(t => t.purpose.toLowerCase().includes('visual') || t.purpose.toLowerCase().includes('image'))?.name || 'your image tool'}.\nStyle: ${niche.visualApproach}\nAspect ratio: 16:9`
     },
     step4: {
       title: 'Step 4 — Voice Settings',
-      content: `ElevenLabs settings:\n- Voice type: deep, calm, slightly gravelly male — late night documentary register\n- Stability: 90\n- Style exaggeration: Low\n- Test: 3-4 voices with same 200-word passage`
+      content: `ElevenLabs settings:\n- Voice type: ${niche.pacingStyle.includes('calm') ? 'deep, calm, soothing male/female' : 'clear, authoritative, professional'}\n- Stability: ${niche.pacingStyle.includes('slow') ? '90' : '70'}\n- Style exaggeration: ${niche.pacingStyle.includes('hypnotic') ? 'Low' : 'Medium'}\n- Test: 3-4 voices with same 200-word passage`
     },
     step5: {
       title: 'Step 5 — Assembly Workflow',
-      content: `Editing instructions:\n- Image timing: 45-75 sec per image, very slow Ken Burns zoom\n- Music: low drones, soft atmosphere at -20dB under narration (Suno/Epidemic Sound)\n- Add YouTube chapters for every section\n- Thumbnail: one epic cinematic image + 2-4 words max\n- Upload cadence: one video per week\n- Disclosure: Add YouTube's AI-generated content label`
+      content: `Editing instructions:\n- Format: ${niche.formatFingerprint}\n- Visual approach: ${niche.visualApproach}\n- Pacing: ${niche.pacingStyle}\n- Upload cadence: ${channelData.videoCount > 0 ? 'one video per week' : 'consistent schedule'}\n- Disclosure: Add YouTube's AI-generated content label`
     }
   };
 }
@@ -303,11 +554,22 @@ function checkQualification(channelData, videos, nicheResult) {
   return fails;
 }
 
-// Alternative suggestions (hardcoded for Phase 1)
+// Alternative suggestions (hardcoded for Phase 1, expanded to one per niche)
 const alternativeSuggestions = [
-  { name: 'Uncharted Mysteries', niche: 'Ancient Mysteries', handle: '@TheUnchartedMysteries' },
-  { name: 'Andrei Jikh', niche: 'Finance', handle: '@AndreiJikh' },
-  { name: 'JCS Criminal Psychology', niche: 'True Crime', handle: '@JCS' }
+  { name: 'Uncharted Mysteries', niche: 'Ancient Mysteries / Dark History', handle: '@TheUnchartedMysteries' },
+  { name: 'Andrei Jikh', niche: 'Business Case Studies', handle: '@AndreiJikh' },
+  { name: 'JCS Criminal Psychology', niche: 'True Crime Documentaries', handle: '@JCS' },
+  { name: 'Meditative Mind', niche: 'Sleep & Meditation Content', handle: '@MeditativeMind' },
+  { name: 'MattVidPro AI', niche: 'AI & Tech Explainers', handle: '@MattVidPro' },
+  { name: 'Business Casual', niche: 'Business Case Studies', handle: '@BusinessCasual' },
+  { name: 'Kings and Generals', niche: 'History Documentaries', handle: '@KingsAndGenerals' },
+  { name: 'Peter Zeihan', niche: 'Geopolitics & World Affairs', handle: '@PeterZeihan' },
+  { name: 'Kurzgesagt', niche: 'Science & Space', handle: '@Kurzgesagt' },
+  { name: 'Improvement Pill', niche: 'Psychology & Self-Improvement', handle: '@ImprovementPill' },
+  { name: 'Teddy Baldassarre', niche: 'Luxury Watches & Collectibles', handle: '@TeddyBaldassarre' },
+  { name: 'Traversy Media', niche: 'Coding Tutorials & Dev Education', handle: '@TraversyMedia' },
+  { name: 'Graham Stephan', niche: 'Real Estate Investing', handle: '@GrahamStephan' },
+  { name: 'Escaping Ordinary', niche: 'Book Summaries & Key Insights', handle: '@EscapingOrdinary' }
 ];
 
 // New endpoint: /clone-channel
@@ -320,22 +582,13 @@ app.post('/clone-channel', async (req, res) => {
   }
 
   try {
-    // 1. Fetch channel metadata
     const channelData = await getChannelData(identifier);
-
-    // 2. Fetch video IDs
     const videoIds = await getVideoIds(channelData.uploadsPlaylistId, 30);
-
-    // 3. Fetch video details
     const videos = await getVideosDetails(videoIds);
 
-    // 4. Compute cadence
     const cadenceDays = calculateCadence(videos);
-
-    // 5. Classify niche
     const nicheResult = classifyNiche(channelData, videos);
 
-    // 6. Qualification checks
     const fails = checkQualification(channelData, videos, nicheResult);
     if (fails.length > 0) {
       return res.json({
@@ -345,14 +598,10 @@ app.post('/clone-channel', async (req, res) => {
       });
     }
 
-    // 7. Revenue estimate
     const rpm = nicheResult.niche.rpm;
     const revenue = estimateRevenue(videos, cadenceDays, rpm);
 
-    // 8. Build channel card
     const channelCard = buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult);
-
-    // 9. Build prompts
     const prompts = buildPromptTemplates(nicheResult.niche, channelData, videos);
 
     res.json({
