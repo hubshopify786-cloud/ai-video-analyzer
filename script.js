@@ -93,7 +93,7 @@ async function analyzeChannel(url) {
   setLoading(true);
 
   try {
-    const response = await fetch('/clone-channel', {
+    const response = await fetch('/analyze-channel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ channelUrl: url }),
@@ -113,8 +113,8 @@ async function analyzeChannel(url) {
       throw new Error(data.error);
     }
 
-    if (data.status === 'disqualified') {
-      showDisqualified(data.reasons, data.warnings);
+    if (data.status === 'not-supported') {
+      showNotSupported(data.reasons, data.warnings);
     } else {
       populateResults(data);
       showScreen('results');
@@ -132,8 +132,8 @@ async function analyzeChannel(url) {
   }
 }
 
-// Show disqualified screen
-function showDisqualified(reasons, warnings = []) {
+// Show not-supported screen
+function showNotSupported(reasons, warnings = []) {
   const reasonEl = document.getElementById('disqualReason');
   let content = reasons.join('\n\n');
   if (warnings.length > 0) {
@@ -151,8 +151,8 @@ function populateResults(data) {
   const aiDetection = data.aiDetection || {};
 
   // Hero channel card
-  document.getElementById('resultNiche').textContent = card.niche + ' • Production System';
-  document.getElementById('resultHeadline').textContent = 'One Video a Week = ' + card.estimatedMonthlyRevenue + '/Month';
+  document.getElementById('resultNiche').textContent = card.niche + ' • Creator Roadmap';
+  document.getElementById('resultHeadline').textContent = 'Learn their strategy → Build your channel';
   document.getElementById('resultFormat').textContent = card.formatFingerprint;
   document.getElementById('statSubs').textContent = formatSubscribers(card.subscribers);
   document.getElementById('statVideos').textContent = card.videoCount;
@@ -161,7 +161,7 @@ function populateResults(data) {
 
   // Channel reference
   document.getElementById('channelRef').innerHTML =
-    '<strong>Channel Name:</strong> <a href="' + card.url + '" target="_blank" rel="noopener noreferrer">' + card.url + '</a>';
+    '<strong>Channel Analyzed:</strong> <a href="' + card.url + '" target="_blank" rel="noopener noreferrer">' + card.url + '</a>';
 
   // Summary line
   document.getElementById('channelSummaryLine').textContent =
@@ -169,13 +169,13 @@ function populateResults(data) {
 
   // Why it works
   document.getElementById('whyItWorks').innerHTML =
-    '<strong>Why it works:</strong> ' + card.whyItWorks;
+    '<strong>Why this approach works:</strong> ' + card.whyItWorks;
 
   // AI Detection badge
   if (aiDetection.isLikelyAI) {
     const aiBadge = document.createElement('div');
     aiBadge.style.cssText = 'margin-top:16px; padding:12px 16px; background:rgba(99,214,162,.15); border:1px solid rgba(99,214,162,.3); border-radius:12px; color:#63d6a2; font-weight:600;';
-    aiBadge.innerHTML = '🤖 <strong>AI-Generated Content Detected</strong> — This channel shows signs of AI tool usage (' + aiDetection.aiScore + ' categories: ' + aiDetection.details.map(d => d.category).join(', ') + ')';
+    aiBadge.innerHTML = '🤖 <strong>AI Tools Detected</strong> — This creator uses AI in their workflow (' + aiDetection.aiScore + ' categories: ' + aiDetection.details.map(d => d.category).join(', ') + '). Learn their approach.';
     document.getElementById('whyItWorks').parentNode.insertBefore(aiBadge, document.getElementById('whyItWorks').nextSibling);
   }
 
@@ -223,7 +223,12 @@ function prefillAndAnalyze(url) {
   analyzeChannel(url);
 }
 
-// Export workflow - supports multiple formats
+// Format channel name for export filename
+function sanitizeFilename(name) {
+  return name.replace(/[^a-z0-9]+/gi, '-').toLowerCase().replace(/^-|-$/g, '');
+}
+
+// Export roadmap - supports multiple formats
 function exportWorkflow(format = 'txt') {
   const prompts = [
     document.getElementById('prompt1').textContent,
@@ -234,21 +239,24 @@ function exportWorkflow(format = 'txt') {
   ];
 
   const steps = [
-    'STEP 1 — TOPIC PROMPT',
-    'STEP 2 — SCRIPT PROMPT',
-    'STEP 3 — IMAGE PROMPT',
-    'STEP 4 — VOICE SETTINGS',
-    'STEP 5 — ASSEMBLY WORKFLOW'
+    'STEP 1 — CONTENT STRATEGY & IDEATION',
+    'STEP 2 — SCRIPT STRUCTURE & STORYTELLING',
+    'STEP 3 — VISUAL STYLE & IMAGE PROMPTS',
+    'STEP 4 — VOICE & AUDIO SETTINGS',
+    'STEP 5 — PRODUCTION & ASSEMBLY WORKFLOW'
   ];
 
   const channelName = document.getElementById('resultNiche')?.textContent?.split(' • ')[0] || 'Unknown Channel';
-  const niche = channelName;
+  const niche = sanitizeFilename(channelName);
+
+  const disclaimer = '\n\n---\n\nThis roadmap is designed for inspiration and strategic guidance. Use these insights to develop your own unique channel, content, and brand—not to copy or replicate another creator.';
 
   if (format === 'json') {
     const data = {
-      engine: 'CloneThis — AI Channel Cloning Engine',
-      channel: niche,
+      engine: 'CreatorRoadmap — Learn From Successful Channels',
+      channel: channelName,
       exportedAt: new Date().toISOString(),
+      disclaimer: 'This roadmap is designed for inspiration and strategic guidance. Use these insights to develop your own unique channel, content, and brand—not to copy or replicate another creator.',
       steps: prompts.map((prompt, i) => ({
         step: i + 1,
         title: steps[i],
@@ -259,7 +267,7 @@ function exportWorkflow(format = 'txt') {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'clonethis-workflow.json';
+    a.download = `creatorroadmap-${niche}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -268,23 +276,23 @@ function exportWorkflow(format = 'txt') {
   }
 
   if (format === 'md') {
-    let content = `# CloneThis — AI Channel Cloning Engine\n\n`;
-    content += `**Channel:** ${niche}\n`;
-    content += `**Exported:** ${new Date().toLocaleString()}\n\n`;
+    let content = `# CreatorRoadmap — Strategic Channel Roadmap\n\n`;
+    content += `**Channel Analyzed:** ${channelName}\n`;
+    content += `**Generated:** ${new Date().toLocaleString()}\n\n`;
     content += `---\n\n`;
 
     prompts.forEach((prompt, i) => {
       content += `## ${steps[i]}\n\n`;
-      content += '```\n' + prompt + '\n```\n\n';
+      content += prompt + '\n\n';
     });
 
-    content += '---\n\n*Generated by CloneThis — AI Channel Cloning Engine*';
+    content += '---\n\n> **Disclaimer:** This roadmap is designed for inspiration and strategic guidance. Use these insights to develop your own unique channel, content, and brand—not to copy or replicate another creator.\n';
 
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'clonethis-workflow.md';
+    a.download = `creatorroadmap-${niche}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -293,9 +301,11 @@ function exportWorkflow(format = 'txt') {
   }
 
   // Default: txt
-  let content = 'CLONETHIS — AI CHANNEL CLONING ENGINE\n';
-  content += 'Generated Workflow Export\n';
+  let content = 'CREATORROADMAP — STRATEGIC CHANNEL ROADMAP\n';
+  content += 'Learn From Successful Channels\n';
   content += '='.repeat(50) + '\n\n';
+  content += `Channel: ${channelName}\n`;
+  content += `Generated: ${new Date().toLocaleString()}\n\n`;
 
   prompts.forEach((prompt, i) => {
     content += steps[i] + '\n';
@@ -303,14 +313,13 @@ function exportWorkflow(format = 'txt') {
     content += prompt + '\n\n';
   });
 
-  content += '='.repeat(50) + '\n';
-  content += 'CloneThis — AI Channel Cloning Engine\n';
+  content += disclaimer + '\n';
 
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'clonethis-workflow.txt';
+  a.download = `creatorroadmap-${niche}.txt`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

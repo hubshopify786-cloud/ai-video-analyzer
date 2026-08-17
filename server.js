@@ -948,8 +948,8 @@ const alternativeSuggestions = [
   { name: 'Escaping Ordinary', niche: 'Book Summaries & Key Insights', handle: '@EscapingOrdinary' }
 ];
 
-// New endpoint: /clone-channel
-app.post('/clone-channel', async (req, res) => {
+// New endpoint: /analyze-channel
+app.post('/analyze-channel', async (req, res) => {
   const channelInput = req.body.channelUrl;
   const identifier = extractChannelIdentifier(channelInput);
 
@@ -967,10 +967,10 @@ app.post('/clone-channel', async (req, res) => {
 
     const qualification = checkQualification(channelData, videos, nicheResult);
 
-    // If there are hard fails, return disqualified
+    // If there are hard fails, return not-supported
     if (qualification.fails.length > 0) {
       return res.json({
-        status: 'disqualified',
+        status: 'not-supported',
         reasons: qualification.fails,
         warnings: qualification.warnings,
         suggestions: alternativeSuggestions
@@ -980,7 +980,7 @@ app.post('/clone-channel', async (req, res) => {
     // Check if we have a valid niche (even with warnings, we can qualify)
     if (!nicheResult.niche) {
       return res.json({
-        status: 'disqualified',
+        status: 'not-supported',
         reasons: ['Unable to determine a clear niche for this channel.'],
         warnings: qualification.warnings,
         suggestions: alternativeSuggestions
@@ -997,7 +997,7 @@ app.post('/clone-channel', async (req, res) => {
     const prompts = buildPromptTemplates(nicheResult.niche, channelData, videos, nicheResult);
 
     res.json({
-      status: 'qualified',
+      status: 'supported',
       channelCard,
       prompts,
       warnings: qualification.warnings,

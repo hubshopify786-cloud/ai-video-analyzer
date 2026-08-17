@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloneThis — AI Channel Cloning Engine</title>
+  <title>CreatorRoadmap — Learn From Successful Channels</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,12 +12,12 @@
   <div id="screen-landing" class="screen" style="display:block;">
     <main class="page">
       <header class="hero">
-        <div class="eyebrow">CloneThis — AI Channel Cloning Engine</div>
-        <h1>Clone any AI-made<br>YouTube channel.</h1>
+        <div class="eyebrow">CreatorRoadmap — Learn From Successful Channels</div>
+        <h1>Build your channel.<br>Inspired by the best.</h1>
         <p class="hero-sub">
-          Paste a channel URL. Get the exact topic prompts, script template,
-          image prompts, voice settings, and assembly workflow to create that
-          same type of video yourself — today.
+          Paste a creator's channel URL. Get a strategic roadmap revealing
+          their content patterns, growth levers, and production approach—
+          so you can adapt those insights to build your own unique channel.
         </p>
 
         <!-- URL input + Analyze button -->
@@ -26,11 +26,11 @@
             class="url-input"
             id="channelUrl"
             type="url"
-            placeholder="https://www.youtube.com/@YourChannelHere"
+            placeholder="https://www.youtube.com/@FavoriteCreator"
             style="flex:1; min-width:260px;"
           />
           <button class="btn-primary" id="analyzeBtn">
-            Analyze Channel →
+            Get Roadmap →
           </button>
         </div>
 
@@ -50,7 +50,7 @@
           <div class="number">?</div>
           <div>
             <h2>What you'll get</h2>
-            <div class="section-kicker">Example output for Uncharted Mysteries</div>
+            <div class="section-kicker">Example roadmap for Uncharted Mysteries</div>
           </div>
         </div>
         <div class="channel">
@@ -60,43 +60,45 @@
           291K subscribers · 84 videos · ~$9,500/mo est. · 1 upload/week
         </p>
         <p>
-          Paste a qualifying channel URL above and get the complete 5-step
-          AI production workflow: topic prompt → script prompt → image prompt
-          → voice settings → assembly guide. Ready to use immediately.
+          Analyze a channel and receive a <strong>strategic creator roadmap</strong> covering:
         </p>
+        <ul style="margin: 12px 0 0 20px; color: var(--text); line-height: 1.8;">
+          <li><strong>Content Strategy</strong> — Topic patterns, title formulas, format fingerprint</li>
+          <li><strong>Production Approach</strong> — Pacing style, visual aesthetic, AI tool recommendations</li>
+          <li><strong>Growth Insights</strong> — Upload cadence, revenue model, audience retention drivers</li>
+          <li><strong>Actionable Prompts</strong> — Ready-to-use prompts for ideation, scripting, visuals, voice, and assembly</li>
+        </ul>
         <div class="tip">
-          <strong>Which channels qualify?</strong> The channel must be
-          monetised, primarily AI-made, follow a repeatable format, and have
-          50+ videos. Reaction, vlog, and live channels are not supported.
+          <strong>Who this is for:</strong> Creators who want to learn from successful channels and apply those strategies to build their own unique brand—not copy someone else's.
         </div>
       </section>
 
-      <div class="footer">CloneThis — AI Channel Cloning Engine</div>
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
     </main>
   </div>
 
-  <!-- SCREEN 2 — DISQUALIFIED -->
+  <!-- SCREEN 2 — NOT SUPPORTED -->
   <div id="screen-disqualified" class="screen" style="display:none;">
     <main class="page">
       <div class="disqualified">
-        <div class="eyebrow" style="color:var(--orange);">Channel not supported</div>
-        <h2 style="color:var(--orange); margin-top:10px;">This channel doesn't qualify</h2>
+        <div class="eyebrow" style="color:var(--orange);">Unable to generate roadmap</div>
+        <h2 style="color:var(--orange); margin-top:10px;">We couldn't create a roadmap for this channel</h2>
         <p id="disqualReason" style="color:var(--muted); font-size:16px; margin-top:8px;">
           <!-- Populated dynamically -->
         </p>
       </div>
 
-      <!-- Alternative channel suggestions (hardcoded for Phase 1) -->
+      <!-- Alternative channel suggestions -->
       <section class="section" style="margin-top:24px;">
         <div class="section-head">
           <div class="number blue">→</div>
           <div>
-            <h2>Try one of these qualifying channels</h2>
-            <div class="section-kicker">All confirmed AI-producible and revenue-generating</div>
+            <h2>Try one of these example channels</h2>
+            <div class="section-kicker">Popular creators across different niches with clear, repeatable strategies</div>
           </div>
         </div>
 
-        <!-- Suggestion cards (one per niche) — hardcoded for Phase 1 -->
+        <!-- Suggestion cards (one per niche) -->
         <div class="stats" style="grid-template-columns: repeat(3,1fr);">
 
           <div class="stat" style="cursor:pointer;"
@@ -140,26 +142,26 @@
 
       <div style="margin-top:24px; text-align:center;">
         <button class="btn-primary" onclick="showScreen('landing')" style="background:var(--panel); color:var(--text); border:1px solid var(--border);">
-          ← Try a different channel
+          ← Analyze another channel
         </button>
       </div>
 
-      <div class="footer">CloneThis — AI Channel Cloning Engine</div>
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
     </main>
   </div>
 
-  <!-- SCREEN 3 — RESULTS (Channel Card + 5 Steps) -->
+  <!-- SCREEN 3 — RESULTS (Creator Roadmap) -->
   <div id="screen-results" class="screen" style="display:none;">
     <main class="page">
 
       <!-- CHANNEL CARD (hero) -->
       <header class="hero" id="channelCard">
         <div class="eyebrow" id="resultNiche">
-          <!-- e.g. "Ancient Mysteries / Dark History • Production System" -->
+          <!-- e.g. "Ancient Mysteries / Dark History • Creator Roadmap" -->
         </div>
         <h1 id="resultHeadline">
-          <!-- e.g. "One Video a Week = $9,500/Month" -->
-        </h1>
+          <!-- e.g. "Learn their strategy → Build your channel" -->
+        </headline>
         <p class="hero-sub" id="resultFormat">
           <!-- e.g. "90-100 min chaptered countdown documentary (7-12 mysteries per video)" -->
         </p>
@@ -183,13 +185,18 @@
         </div>
       </header>
 
-      <!-- MAIN WORKFLOW SECTION -->
+      <!-- DISCLAIMER BANNER -->
+      <div style="margin-top:16px; padding:14px 18px; background:rgba(99,214,162,.12); border:1px solid rgba(99,214,162,.25); border-radius:12px; color:#63d6a2; font-size:14px; line-height:1.6;">
+        <strong>📋 This roadmap is designed for inspiration and strategic guidance.</strong> Use these insights to develop your own unique channel, content, and brand—not to copy or replicate another creator's identity, branding, or specific content.
+      </div>
+
+      <!-- MAIN ROADMAP SECTION -->
       <section class="section">
         <div class="section-head">
           <div class="number">1</div>
           <div>
-            <h2>THE CHANNEL (study it first)</h2>
-            <div class="section-kicker">Reference channel and production model</div>
+            <h2>THE CREATOR (study their approach)</h2>
+            <div class="section-kicker">What makes this channel successful—patterns you can learn from</div>
           </div>
         </div>
 
@@ -203,8 +210,8 @@
         <p id="whyItWorks"></p>
         <!-- e.g. "<strong>Why it works:</strong> Mid-roll ads across 90 min = 6-8× the ad revenue…" -->
 
-        <p><strong>Watch 15 minutes of their top video before starting.</strong>
-        Notice the narration pace, visual style, and chapter structure.</p>
+        <p><strong>Watch 15 minutes of their top video.</strong>
+        Notice the narration pace, visual style, and chapter structure—then ask: <em>How can I adapt this approach for my own voice and audience?</em></p>
 
         <div class="divider"></div>
 
@@ -212,7 +219,7 @@
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 1</span>
-            <h3>Step 1 — Topic Prompt</h3>
+            <h3>Step 1 — Content Strategy & Ideation</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -224,7 +231,7 @@
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 2</span>
-            <h3>Step 2 — Script Prompt</h3>
+            <h3>Step 2 — Script Structure & Storytelling</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -236,7 +243,7 @@
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 3</span>
-            <h3>Step 3 — Image Prompt</h3>
+            <h3>Step 3 — Visual Style & Image Prompts</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -248,7 +255,7 @@
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 4</span>
-            <h3>Step 4 — Voice Settings</h3>
+            <h3>Step 4 — Voice & Audio Settings</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -260,7 +267,7 @@
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 5</span>
-            <h3>Step 5 — Assembly Workflow</h3>
+            <h3>Step 5 — Production & Assembly Workflow</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -270,22 +277,22 @@
 
       </section>
 
-      <!-- THE HONEST PART -->
+      <!-- PRINCIPLES SECTION -->
       <section class="section">
         <div class="section-head">
           <div class="number orange">!</div>
           <div>
-            <h2>THE HONEST PART</h2>
-            <div class="section-kicker">The long-term rule</div>
+            <h2>BUILD YOUR OWN CHANNEL</h2>
+            <div class="section-kicker">Principles for long-term success</div>
           </div>
         </div>
         <div class="copy-card">
-          <p style="margin:0; color:#dfe5ef;">
-            This system removes the production barrier. It doesn't remove the
-            consistency requirement. Keep the content honest. Real unexplained
-            things are fascinating enough. The moment a channel invents or
-            misleads, the audience and the algorithm both leave.
-          </p>
+          <ul style="margin:0; padding-left:20px; color:#dfe5ef; line-height:1.8;">
+            <li><strong>Adapt, don't adopt.</strong> Take the strategy, leave the identity. Your unique perspective is your competitive advantage.</li>
+            <li><strong>Consistency beats perfection.</strong> The roadmap removes guesswork—your job is to show up and execute.</li>
+            <li><strong>Honesty scales.</strong> Real expertise, genuine curiosity, and authentic storytelling build trust that clickbait never can.</li>
+            <li><strong>Your audience deserves you.</strong> They're here for <em>your</em> take, not a recreation of someone else's.</li>
+          </ul>
         </div>
       </section>
 
@@ -293,7 +300,7 @@
       <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center;">
         <div style="position:relative;">
           <button class="btn-primary" id="exportBtn" style="position:relative; z-index:10;">
-            Export Workflow ▼
+            Export Roadmap ▼
           </button>
           <div id="exportDropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); min-width:200px; z-index:20; overflow:hidden;">
             <button class="export-option" data-format="txt" style="display:block; width:100%; text-align:left; padding:12px 16px; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px;">Export as .txt (plain text)</button>
@@ -308,7 +315,7 @@
         </button>
       </div>
 
-      <div class="footer">Generated by CloneThis — AI Channel Cloning Engine</div>
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
     </main>
   </div>
 
