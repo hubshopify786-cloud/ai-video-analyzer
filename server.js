@@ -402,7 +402,134 @@ function estimateRevenue(videos, cadenceDays, rpm) {
   return { low, high, midpoint: monthlyRevenue };
 }
 
-// Helper: classify niche using three-signal scoring across all niches
+// AI Tool detection patterns (built from tools.json for comprehensive coverage)
+const aiToolPatterns = {
+  writing: [
+    'chatgpt', 'chat gpt', 'gpt-4', 'gpt-3', 'gpt4', 'gpt3', 'openai', 'anthropic', 'claude',
+    'jasper', 'jarvis', 'copy.ai', 'copyai', 'notion ai', 'notion.so', 'ai writing', 'ai script',
+    'written by ai', 'ai generated script', 'ai-written', 'ai generated', 'gpt', 'llm',
+    'large language model', 'prompt engineering'
+  ],
+  voiceover: [
+    'elevenlabs', 'eleven labs', '11labs', 'murf', 'murf.ai', 'speechify', 'play.ht', 'playht',
+    'wellsaid', 'wellsaidlabs', 'lovo', 'lovo.ai', 'ai voice', 'ai voiceover', 'text to speech',
+    'tts', 'generated voice', 'synthetic voice', 'voice synthesis', 'voice cloning', 'eleven labs'
+  ],
+  image: [
+    'midjourney', 'mid journey', 'mj', 'dall-e', 'dalle', 'dall e', 'openai dall-e',
+    'stable diffusion', 'stable-diffusion', 'sd', 'leonardo ai', 'leonardo.ai', 'leonardo',
+    'ideogram', 'ideogram.ai', 'ai art', 'ai image', 'ai generated image', 'ai artwork',
+    'generated with ai', 'ai art tool', 'ai image generation', 'image generation', 'generative art'
+  ],
+  video: [
+    'runway', 'runwayml', 'runway ml', 'pika', 'pika labs', 'pika.art', 'synthesia',
+    'heygen', 'hey gen', 'heygen.com', 'invideo', 'invideo.io', 'pictory', 'pictory.ai',
+    'lumen5', 'descript', 'descript.com', 'opus clip', 'opusclip', 'opus.pro', 'ai video',
+    'ai generated video', 'ai editing', 'ai video generation', 'video generation', 'gen-2', 'gen-3',
+    'runway gen', 'kling', 'luma dream', 'veo', 'sora'
+  ],
+  music: [
+    'suno', 'suno.ai', 'udio', 'udio.ai', 'aiva', 'aiva.ai', 'soundraw', 'soundraw.io',
+    'mubert', 'mubert.com', 'ai music', 'ai generated music', 'ai soundtrack', 'music generation',
+    'generative music', 'ai composer'
+  ],
+  caption: [
+    'submagic', 'sub magic', 'submagic.co', 'captions.ai', 'captions ai', 'auto caption',
+    'ai caption', 'ai subtitles', 'auto subtitles', 'caption generator', 'submagic',
+    'opus clip', 'opusclip'
+  ]
+};
+
+// AI tool categories from tools.json for more comprehensive detection
+const aiToolCategories = {
+  'AI Writing': 'writing',
+  'AI Voiceover': 'voiceover',
+  'Text-to-Speech': 'voiceover',
+  'AI Image Generation': 'image',
+  'AI Video Generation': 'video',
+  'AI Video Editing': 'video',
+  'AI Video Clipping': 'video',
+  'AI Avatar Video': 'video',
+  'AI Captions': 'caption',
+  'AI Transcription': 'caption',
+  'AI Music': 'music',
+  'Screen Recording': 'video'
+};
+
+// Helper: detect AI tool usage in channel/video descriptions (comprehensive, uses tools.json + patterns)
+function detectAIUsage(channelData, videos) {
+  const allText = [
+    channelData.description.toLowerCase(),
+    ...videos.slice(0, 30).map(v => (v.title + ' ' + v.description).toLowerCase())
+  ].join(' ');
+
+  const detected = {
+    writing: false,
+    voiceover: false,
+    image: false,
+    video: false,
+    music: false,
+    caption: false,
+    details: [],
+    tools: [] // Specific tools detected
+  };
+
+  // 1. Pattern-based detection (broad categories)
+  Object.entries(aiToolPatterns).forEach(([category, patterns]) => {
+    patterns.forEach(pattern => {
+      if (allText.includes(pattern.toLowerCase())) {
+        detected[category] = true;
+        detected.details.push({ category, pattern });
+      }
+    });
+  });
+
+  // 2. Tool-specific detection from tools.json
+  toolsDatabase.forEach(tool => {
+    const toolCategory = aiToolCategories[tool.category];
+    if (toolCategory) {
+      tool.aliases.forEach(alias => {
+        if (allText.includes(alias.toLowerCase())) {
+          detected[toolCategory] = true;
+          if (!detected.tools.some(t => t.name === tool.name)) {
+            detected.tools.push({
+              name: tool.name,
+              category: tool.category,
+              purpose: toolCategory,
+              matchedAlias: alias
+            });
+          }
+        }
+      });
+    }
+  });
+
+  detected.aiScore = Object.values(detected).filter(v => v === true).length;
+  detected.isLikelyAI = detected.aiScore >= 2 || detected.tools.length >= 2; // At least 2 AI categories or 2 specific tools
+
+  return detected;
+}
+
+// Helper: word-boundary-aware keyword match (prevents "ai" matching inside "email")
+// Keywords shorter than 5 chars are treated as whole-word matches; longer ones use includes.
+// For very short keywords (2-3 chars like "ai", "gpt", "llm"), also match common delimiters.
+function keywordMatch(text, keyword) {
+  const kw = keyword.toLowerCase();
+  // Multi-word keywords or those with non-alphanumeric chars (e.g. "401k", "ai agent") need care
+  if (kw.length <= 4 && /^[a-z0-9]+$/.test(kw)) {
+    // Short alphanumeric: require word boundaries, but also match common formats like "AI:", "AI -", "GPT-4", etc.
+    // Match: start, end, space, punctuation, colon, dash, underscore, parentheses
+    const re = new RegExp(`(^|[^a-z0-9])${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
+    if (re.test(text)) return true;
+    // Also match common tech abbreviations like "GPT-4", "AI-powered", "LLM-based", etc.
+    const re2 = new RegExp(`${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[-:]`, 'i');
+    if (re2.test(text)) return true;
+    return false;
+  }
+  return text.includes(kw);
+}
+
+// Helper: classify niche using strict multi-signal scoring
 function classifyNiche(channelData, videos) {
   const recentTitles = videos.slice(0, 30).map(v => v.title.toLowerCase());
 
@@ -412,56 +539,108 @@ function classifyNiche(channelData, videos) {
   const medianDuration = durations.length > 0 ? median(durations) : 0;
   const desc = channelData.description.toLowerCase();
 
+  console.log(`=== Classifying: ${channelData.title} ===`);
+  console.log(`Median duration (long-form only): ${medianDuration.toFixed(1)} min from ${longFormVideos.length} videos`);
+  console.log(`Description: ${desc.substring(0, 200)}...`);
+
+  // Also check AI usage for niche boosting
+  const aiDetection = detectAIUsage(channelData, videos);
+
   let bestNiche = null;
   let bestScore = 0;
   let bestDetails = {};
+  const allScores = [];
 
   niches.forEach(niche => {
-    // Signal 1: title keyword density
+    // Signal 1: title keyword density - primary signal, must have meaningful matches
     const titleMatches = recentTitles.filter(title =>
-      niche.keywords.some(keyword => title.includes(keyword))
+      niche.keywords.some(keyword => keywordMatch(title, keyword))
     ).length;
     const titleDensity = recentTitles.length > 0 ? titleMatches / recentTitles.length : 0;
 
-    // Signal 2: median video length in range
-    const lengthInRange = medianDuration >= niche.videoLengthMin && medianDuration <= niche.videoLengthMax;
+    // Signal 2: median video length proximity to niche range
+    let lengthScore = 0;
+    if (medianDuration > 0) {
+      const inRange = medianDuration >= niche.videoLengthMin && medianDuration <= niche.videoLengthMax;
+      if (inRange) {
+        lengthScore = 1.0;
+      } else {
+        // Partial score only if close to range
+        const nicheMid = (niche.videoLengthMin + niche.videoLengthMax) / 2;
+        const distance = Math.abs(medianDuration - nicheMid);
+        const maxAllowedDistance = Math.max(niche.videoLengthMax - niche.videoLengthMin, 10);
+        lengthScore = Math.max(0, 1 - (distance / maxAllowedDistance));
+      }
+    }
 
     // Signal 3: channel description keywords
-    const descMatches = niche.keywords.filter(keyword => desc.includes(keyword)).length;
+    const descMatches = niche.keywords.filter(keyword => keywordMatch(desc, keyword)).length;
+    const descScore = Math.min(1, descMatches / 2); // Need at least 2 matches for full score
 
-    // Weighted scoring (40% title, 35% length, 25% description)
-    const titleScore = titleDensity >= 0.6 ? 1 : titleDensity / 0.6; // scale to 1
-    const lengthScore = lengthInRange ? 1 : 0;
-    const descScore = descMatches > 0 ? 1 : 0;
+    // Signal 4: AI usage boost (if channel uses AI tools, boost matching niches)
+    let aiBoost = 0;
+    if (aiDetection.isLikelyAI) {
+      // Check if niche's aiTools match detected AI categories
+      const nicheToolCategories = niche.aiTools.map(t => t.purpose.toLowerCase());
+      const detectedCategories = Object.keys(aiDetection).filter(k => aiDetection[k] === true && k !== 'details' && k !== 'aiScore' && k !== 'isLikelyAI' && k !== 'tools');
+      const overlap = nicheToolCategories.filter(cat => detectedCategories.some(dc => cat.includes(dc) || dc.includes(cat))).length;
+      aiBoost = Math.min(0.15, overlap * 0.075); // Max 0.15 boost
+    }
 
-    const totalScore = (titleScore * 0.4) + (lengthScore * 0.35) + (descScore * 0.25);
-    console.log(`Niche ${niche.name}: score=${totalScore.toFixed(3)}, titleDensity=${titleDensity.toFixed(2)}, lengthInRange=${lengthInRange}, descMatches=${descMatches}, medianDuration=${medianDuration.toFixed(1)}`);
+    // KEY FIX: Require minimum title density for ANY score
+    // If title density < 0.15 (less than ~15% of videos match niche keywords), heavily penalize
+    const minTitleDensity = 0.15;
+    let titleScore = 0;
+    if (titleDensity >= minTitleDensity) {
+      titleScore = Math.min(1, titleDensity / 0.4); // Full score at 40% density
+    } else if (titleDensity > 0) {
+      // Partial credit but heavily reduced
+      titleScore = (titleDensity / minTitleDensity) * 0.3; // Max 0.3 if below threshold
+    }
+
+    // Weighted scoring (50% title, 25% length, 15% description, 10% AI boost)
+    // Title is now dominant - channel MUST talk about the niche topics
+    const totalScore = (titleScore * 0.50) + (lengthScore * 0.25) + (descScore * 0.15) + (aiBoost * 0.10);
+
+    allScores.push({ niche: niche.name, score: totalScore, titleDensity, titleMatches });
+
+    console.log(`Niche ${niche.name}: score=${totalScore.toFixed(3)}, titleDensity=${titleDensity.toFixed(2)}, titleScore=${titleScore.toFixed(2)}, lengthScore=${lengthScore.toFixed(2)}, descScore=${descScore.toFixed(2)}, aiBoost=${aiBoost.toFixed(2)}, medianDuration=${medianDuration.toFixed(1)}, titleMatches=${titleMatches}/${recentTitles.length}, descMatches=${descMatches}`);
     if (totalScore > bestScore) {
       bestScore = totalScore;
       bestNiche = niche;
       bestDetails = {
         titleDensity,
         medianDuration,
-        lengthInRange,
-        descMatches
+        lengthScore,
+        descMatches,
+        aiBoost,
+        aiDetection
       };
     }
   });
 
+  // Stricter thresholds
   let confidence = 'low';
-  if (bestScore >= 0.75) confidence = 'high';
-  else if (bestScore >= 0.5) confidence = 'medium';
+  if (bestScore >= 0.65) confidence = 'high';
+  else if (bestScore >= 0.4) confidence = 'medium';
 
-  const matched = bestScore >= 0.5;
+  // Match if score >= 0.4 OR if AI detected with decent niche match
+  const matched = bestScore >= 0.4 || (aiDetection.isLikelyAI && bestScore >= 0.3);
+
+  console.log(`=== BEST: ${bestNiche?.name || 'NONE'} (score: ${bestScore.toFixed(3)}, matched: ${matched}) ===`);
+  console.log(`Top candidates: ${allScores.sort((a,b) => b.score - a.score).slice(0,3).map(s => `${s.niche}=${s.score.toFixed(3)}`).join(', ')}`);
 
   return {
     niche: matched ? bestNiche : null,
     confidence,
     titleDensity: bestDetails.titleDensity || 0,
     medianDuration: bestDetails.medianDuration || 0,
-    lengthInRange: bestDetails.lengthInRange || false,
+    lengthScore: bestDetails.lengthScore || 0,
     descMatches: bestDetails.descMatches || 0,
-    score: bestScore
+    aiBoost: bestDetails.aiBoost || 0,
+    aiDetection: bestDetails.aiDetection || { isLikelyAI: false, aiScore: 0, details: [], tools: [] },
+    score: bestScore,
+    allScores: allScores.sort((a, b) => b.score - a.score)
   };
 }
 
@@ -505,53 +684,250 @@ function buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult
   };
 }
 
-// Build 5-step prompt templates using niche data
-function buildPromptTemplates(niche, channelData, videos) {
+// Build 5-step prompt templates using niche data + actual channel analysis
+function buildPromptTemplates(niche, channelData, videos, nicheResult) {
   const titles = videos.slice(0, 30).map(v => v.title);
+  const recentTitles = titles.slice(0, 10);
   const titlePattern = titles.length > 0 ? titles[0] : 'Sample title';
+
+  // Extract common title patterns from actual videos
+  const commonPrefixes = extractTitlePatterns(titles);
+
+  // Get detected AI tools
+  const detectedTools = nicheResult.aiDetection?.tools || [];
+  const detectedCategories = Object.keys(nicheResult.aiDetection || {})
+    .filter(k => nicheResult.aiDetection[k] === true && k !== 'details' && k !== 'aiScore' && k !== 'isLikelyAI' && k !== 'tools');
+
+  // Build tool-specific instructions
+  const writingTool = detectedTools.find(t => t.purpose === 'writing') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('script') || t.purpose.toLowerCase().includes('writing')) || { name: 'Claude' };
+  const voiceTool = detectedTools.find(t => t.purpose === 'voiceover') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('voice')) || { name: 'ElevenLabs' };
+  const imageTool = detectedTools.find(t => t.purpose === 'image') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('visual') || t.purpose.toLowerCase().includes('image')) || { name: 'Midjourney' };
+  const videoTool = detectedTools.find(t => t.purpose === 'video') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('video') || t.purpose.toLowerCase().includes('edit')) || { name: 'CapCut' };
+
+  // Calculate actual stats
+  const avgViews = videos.slice(0, 12).reduce((sum, v) => sum + v.viewCount, 0) / Math.max(1, videos.slice(0, 12).length);
+  const uploadCadenceDays = nicheResult.medianDuration > 0 ? Math.round(nicheResult.medianDuration) : 7;
+  const topKeywords = extractTopKeywords(titles, niche.keywords);
 
   return {
     step1: {
       title: 'Step 1 — Topic Prompt',
-      content: `Paste this into Claude:\nGenerate 10 video ideas for a ${niche.name} channel following this exact format:\n- Video length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- Title style: ${titlePattern}\n- Topic types: ${niche.keywords.join(', ')}`
+      content: `Paste this into ${writingTool.name}:\n\nGenerate 10 video ideas for a "${channelData.title}"-style ${niche.name} channel.\n\nCHANNEL CONTEXT:\n- Niche: ${niche.name}\n- Subscribers: ${channelData.subscriberCount.toLocaleString()}\n- Videos: ${channelData.videoCount}\n- Typical length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- Upload cadence: ~${uploadCadenceDays} days\n- Avg views/video: ~${Math.round(avgViews).toLocaleString()}\n\nTITLE PATTERNS TO EMULATE:\n${recentTitles.slice(0, 5).map((t, i) => `${i+1}. ${t}`).join('\n')}\n\nCOMMON TITLE STRUCTURES:\n${commonPrefixes.map(p => `• ${p}`).join('\n')}\n\nHIGH-PERFORMING KEYWORDS (from this channel):\n${topKeywords.slice(0, 15).join(', ')}\n\nOUTPUT FORMAT:\nFor each idea provide:\n1. Click-worthy title (matching the patterns above)\n2. 1-sentence hook\n3. 3-5 chapter/section outline\n4. Why this will perform (referencing ${channelData.title}'s proven topics)\n\nCONSTRAINTS:\n- Must be factually accurate and verifiable\n- Fit ${niche.pacingStyle.toLowerCase()} pacing\n- Length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- ${detectedCategories.includes('voiceover') ? 'Written for AI voiceover (ElevenLabs/similar)' : 'Written for human or AI narration'}\n- ${detectedCategories.includes('image') ? 'Visual-heavy: plan for AI-generated images' : 'Visuals: stock footage / screen recording / archives'}\n- Include YouTube AI-disclosure compliance note`
     },
     step2: {
       title: 'Step 2 — Script Prompt',
-      content: `Paste this into Claude:\nWrite a full ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video on [TOPIC].\nStructure:\n- Follow the format of ${niche.formatFingerprint}\n- Use the pacing style: ${niche.pacingStyle}\n- Include accurate, verifiable facts`
+      content: `Paste this into ${writingTool.name}:\n\nWrite a complete ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video.\n\nTOPIC: [INSERT YOUR CHOSEN TOPIC FROM STEP 1]\n\nCHANNEL VOICE & STRUCTURE (based on "${channelData.title}"):\n- Format: ${niche.formatFingerprint}\n- Pacing: ${niche.pacingStyle}\n- Visual approach: ${niche.visualApproach}\n- Target length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes (~${Math.round((niche.videoLengthMin + niche.videoLengthMax) / 2 * 150)} words at 150 wpm)\n\nSCRIPT STRUCTURE:\n1. HOOK (0:00-0:30) — Start with the most compelling mystery/claim/question. No fluff.\n2. CONTEXT SETUP (0:30-2:00) — Why this matters, what viewer will learn\n3. MAIN CONTENT — Divided into ${niche.formatFingerprint.includes('7-12') ? '7-12' : niche.formatFingerprint.includes('3-5') ? '3-5' : '5-8'} chapters/sections\n   • Each section: mini-hook → evidence → payoff\n   • Include specific facts, dates, names, numbers\n   • ${detectedCategories.includes('image') ? 'Add [VISUAL CUE] markers for AI image generation' : 'Add [B-ROLL] markers for footage/screenshots'}\n4. SYNTHESIS/CONCLUSION — Tie threads together, bigger picture\n5. CTA — Subscribe + tease next video\n\nTONE: ${niche.pacingStyle}\nFACT-CHECKING: Every claim must be verifiable. Add [SOURCE NEEDED] for anything not common knowledge.\nAI VOICE OPTIMIZATION: ${detectedCategories.includes('voiceover') ? 'Write for ElevenLabs: shorter sentences, clear punctuation, phonetic spellings for names' : 'Standard narration style'}\n\nEXAMPLE OPENING STYLE (from "${recentTitles[0] || 'top video'}"):\n"${recentTitles[0] ? recentTitles[0].substring(0, 120) + '...' : 'Start with a gripping question or impossible fact'}"`
     },
     step3: {
       title: 'Step 3 — Visual / Image Prompt',
-      content: `Paste this into Claude:\nGenerate visual prompts for ${niche.aiTools.find(t => t.purpose.toLowerCase().includes('visual') || t.purpose.toLowerCase().includes('image'))?.name || 'your image tool'}.\nStyle: ${niche.visualApproach}\nAspect ratio: 16:9`
+      content: `Paste this into ${imageTool.name} (or your preferred AI image tool):\n\nGenerate cinematic 16:9 visuals for a ${niche.name} video in the style of "${channelData.title}".\n\nVISUAL STYLE:\n${niche.visualApproach}\n\nSPECIFIC REQUIREMENTS:\n- Aspect ratio: 16:9 (1920x1080 or 3840x2160)\n- Consistency: Use --cref / style reference for character/scene continuity\n- Color palette: ${getColorPalette(niche.name)}\n- Lighting: ${getLightingStyle(niche.name)}\n\nSHOT LIST TEMPLATE (adapt per script section):\n${generateShotList(niche.name, niche.visualApproach)}\n\nTOOL-SPECIFIC TIPS:\n${getImageToolTips(imageTool.name)}\n\nCHAPTER MARKERS: Add text overlay prompts for chapter titles (clean, readable font, consistent positioning)\nTHUMBNAIL: Generate 3 thumbnail variants — high contrast, face/emotion, curiosity gap\n\nDETECTED CHANNEL STYLE:\n${detectedCategories.includes('image') ? 'This channel uses AI-generated visuals — match their aesthetic exactly' : 'This channel uses stock/archive footage — prompts should describe real footage searches'}\n\nNEGATIVE PROMPTS: low quality, blurry, watermark, text artifacts, deformed hands, extra limbs, cartoon, illustration (unless style demands), oversaturated`
     },
     step4: {
       title: 'Step 4 — Voice Settings',
-      content: `ElevenLabs settings:\n- Voice type: ${niche.pacingStyle.includes('calm') ? 'deep, calm, soothing male/female' : 'clear, authoritative, professional'}\n- Stability: ${niche.pacingStyle.includes('slow') ? '90' : '70'}\n- Style exaggeration: ${niche.pacingStyle.includes('hypnotic') ? 'Low' : 'Medium'}\n- Test: 3-4 voices with same 200-word passage`
+      content: `${voiceTool.name} Voice Configuration for "${channelData.title}" style:\n\nRECOMMENDED VOICE PROFILE:\n- Voice type: ${getVoiceType(niche.pacingStyle, niche.name)}\n- Stability: ${getStability(niche.pacingStyle)}\n- Similarity/Style Exaggeration: ${getSimilarity(niche.pacingStyle)}\n- Speed: ${getSpeed(niche.pacingStyle)} (1.0 = normal)\n\nTESTING PROTOCOL:\n1. Generate 30-second test with same 200-word passage across 4-5 voices\n2. Score each on: naturalness (1-10), niche fit (1-10), listener fatigue (1-10)\n3. Pick top 2, generate full script with both\n4. A/B test on audience retention (if possible)\n\nVOICE SETTINGS BY NICHE:\n${getVoiceSettingsByNiche(niche.name)}\n\nPOST-PROCESSING:\n- Normalize to -16 LUFS (YouTube standard)\n- Light compression (2:1, slow attack)\n- De-ess if needed\n- ${detectedCategories.includes('voiceover') ? 'Add subtle room tone for realism' : ''}\n\nDISCLOSURE: Label video as "Altered or synthetic content" in YouTube upload settings`
     },
     step5: {
       title: 'Step 5 — Assembly Workflow',
-      content: `Editing instructions:\n- Format: ${niche.formatFingerprint}\n- Visual approach: ${niche.visualApproach}\n- Pacing: ${niche.pacingStyle}\n- Upload cadence: ${channelData.videoCount > 0 ? 'one video per week' : 'consistent schedule'}\n- Disclosure: Add YouTube's AI-generated content label`
+      content: `COMPLETE PRODUCTION WORKFLOW for "${channelData.title}"-style ${niche.name} channel:\n\n📋 PRE-PRODUCTION (Day 1-2)\n• Topic selected from Step 1\n• Script finalized from Step 2 (fact-checked, [SOURCE NEEDED] resolved)\n• Shot list created from Step 3\n• Voice selected & tested from Step 4\n• Thumbnail concepts drafted\n\n🎬 PRODUCTION (Day 2-4)\n1. VOICEOVER: Generate full narration in ${voiceTool.name}\n   - Batch by chapter for consistency\n   - Export WAV, 48kHz\n2. VISUALS:\n   ${detectedCategories.includes('image') ?
+`   - Generate AI images in ${imageTool.name} per shot list\n   - Use --cref for consistency across scenes\n   - Upscale to 4K (Topaz/waifu2x)\n   - Organize by chapter/timestamp` :
+`   - Source stock footage (Storyblocks/Pexels/NASA/archives)\n   - Screen record demos (${videoTool.name} / OBS)\n   - Download archival images (public domain)\n   - Organize by chapter/timestamp`}
+3. MUSIC/SFX: ${detectedCategories.includes('music') ? `Generate in ${detectedTools.find(t => t.purpose === 'music')?.name || 'Suno/Udio'}` : 'Source from Epidemic Sound / Artlist / YouTube Audio Library'}\n\n✂️ EDITING (Day 4-6) — ${videoTool.name}\n• Import: voiceover + visuals + music + SFX\n• Rough cut: lay voiceover, trim silence\n• Visual sync: match visuals to narration cues\n• Chapter markers: add at script section boundaries\n• Ken Burns / slow zoom on static images (${niche.pacingStyle.includes('slow') ? '2-3 sec' : '1-2 sec'})\n• Lower thirds: chapter titles, key names/dates\n• Color grade: ${getColorGrade(niche.name)}\n• Audio mix: voice -6dB, music -18 to -24dB under voice\n• Captions: ${detectedCategories.includes('caption') ? `Auto-generate in ${detectedTools.find(t => t.purpose === 'caption')?.name || 'Submagic'}` : 'YouTube auto-captions + manual cleanup'}\n\n📤 PUBLISHING (Day 7)\n• Title: From Step 1 (optimize for CTR)\n• Description: Script summary + timestamps + links + disclosure\n• Tags: ${topKeywords.slice(0, 10).join(', ')}\n• Thumbnail: Best of 3 variants (A/B test if possible)\n• Playlist: Add to relevant series playlist\n• Shorts: Create 60-sec teaser from best hook\n• Schedule: ${nicheResult.uploadCadence || 'Consistent day/time'}\n\n📊 POST-PUBLISH (Day 7-30)\n• Monitor retention graph — note drop-off points for next video\n• Reply to every comment in first 24h\n• Community post: behind-the-scenes / poll for next topic\n• Analytics review at 7d / 30d: CTR, AVD, sub conversion\n\n⚠️ COMPLIANCE CHECKLIST\n☐ YouTube "Altered or synthetic content" label enabled\n☐ No misleading claims — all facts verified\n☐ Music/SFX licensed for commercial use\n☐ Visuals: no copyrighted characters/logos without permission\n☐ Affiliate/sponsor disclosures in description\n☐ Community guidelines compliant\n\n🔁 REPEAT: Next video starts Day 1 while current publishes`
     }
   };
 }
 
-// Qualification checks
+// Helper functions for prompt generation
+function extractTitlePatterns(titles) {
+  const patterns = new Map();
+  titles.forEach(title => {
+    // Extract first 2-3 words as pattern
+    const words = title.split(' ').slice(0, 3).join(' ');
+    patterns.set(words, (patterns.get(words) || 0) + 1);
+  });
+  return Array.from(patterns.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([p]) => p);
+}
+
+function extractTopKeywords(titles, nicheKeywords) {
+  const wordCount = new Map();
+  titles.forEach(title => {
+    const words = title.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3);
+    words.forEach(w => wordCount.set(w, (wordCount.get(w) || 0) + 1));
+  });
+  // Prioritize niche keywords
+  return Array.from(wordCount.entries())
+    .sort((a, b) => {
+      const aNiche = nicheKeywords.includes(a[0]) ? 1000 : 0;
+      const bNiche = nicheKeywords.includes(b[0]) ? 1000 : 0;
+      return (b[1] + bNiche) - (a[1] + aNiche);
+    })
+    .map(([w]) => w);
+}
+
+function getColorPalette(nicheName) {
+  const palettes = {
+    'Ancient Mysteries / Dark History': 'muted earth tones, amber, deep browns, aged parchment, gold accents',
+    'Personal Finance Explainers': 'clean blues, greens, white, gold — trust & growth colors',
+    'True Crime Documentaries': 'dark reds, blacks, cold blues, high contrast, forensic aesthetic',
+    'Sleep & Meditation Content': 'soft purples, blues, warm ambers, dreamy gradients, low saturation',
+    'AI & Tech Explainers': 'electric blues, purples, dark mode UI colors, neon accents, clean whites',
+    'Business Case Studies': 'navy, charcoal, gold, crisp whites, corporate professional',
+    'History Documentaries': 'sepia, aged paper, deep reds, navy, gold, map tones',
+    'Geopolitics & World Affairs': 'deep blues, reds, gold, flag colors, map terrain tones',
+    'Science & Space': 'cosmic purples, blues, blacks, nebula pinks, star whites',
+    'Psychology & Self-Improvement': 'calm blues, greens, warm neutrals, clean minimal',
+    'Luxury Watches & Collectibles': 'black, gold, silver, white, macro lighting, premium',
+    'Coding Tutorials & Dev Education': 'dark mode IDE colors, syntax highlighting, clean mono',
+    'Real Estate Investing': 'navy, gold, green (money), property photos, clean charts',
+    'Book Summaries & Key Insights': 'warm paper tones, accent color per book, clean typography'
+  };
+  return palettes[nicheName] || 'cinematic, cohesive color grade';
+}
+
+function getLightingStyle(nicheName) {
+  const styles = {
+    'Ancient Mysteries / Dark History': 'golden hour, candlelight, dramatic chiaroscuro',
+    'Sleep & Meditation Content': 'soft diffuse, twilight, bioluminescent',
+    'True Crime Documentaries': 'harsh fluorescent, single source, shadow-heavy',
+    'AI & Tech Explainers': 'clean studio, RGB accent, screen glow',
+    'Luxury Watches & Collectibles': 'macro ring light, gradient reflections, controlled highlights',
+    'Science & Space': 'cosmic ambient, rim lighting, volumetric'
+  };
+  return styles[nicheName] || 'cinematic, three-point lighting';
+}
+
+function getImageToolTips(toolName) {
+  const tips = {
+    'Midjourney': '--v 6.1 --style raw --stylize 250 --ar 16:9\nUse --cref for consistency\nUse --sref for style reference',
+    'DALL-E': 'Detailed descriptive prompts, specify camera/lens, lighting, mood',
+    'Stable Diffusion': 'Use ControlNet for composition, ADetailer for faces, Hires. fix for 4K',
+    'Leonardo AI': 'Alchemy upscaler, PhotoReal model, guidance 7-9',
+    'Ideogram': 'Excellent for text in images, use "typography" style'
+  };
+  return tips[toolName] || 'Follow tool-specific best practices for 16:9 cinematic output';
+}
+
+function generateShotList(nicheName, visualApproach) {
+  // Generic, adaptable shot list per niche archetype
+  if (visualApproach.toLowerCase().includes('macro') || nicheName.includes('Luxury')) {
+    return `• HERO: macro wide of subject, slow rack focus\n• DETAIL: extreme macro complications/movement\n• CONTEXT: lifestyle / wrist or display shot\n• DIAGRAM: exploded view or labeled callout\n• THUMBNAIL: hero subject on dark glossy bg + accent light`;
+  }
+  if (visualApproach.toLowerCase().includes('screen') || nicheName.includes('Coding') || nicheName.includes('Tech')) {
+    return `• HOOK: full-screen UI / code / tool demo at key moment\n• CODE: screen record of relevant snippet (zoomed)\n• DIAGRAM: callout boxes / animated arrows highlight step\n• FACE/REACTION: optional PIP face (16:9 frame)\n• B-ROLL CUTOFF: screen recording of terminal output`;
+  }
+  if (visualApproach.toLowerCase().includes('map') || nicheName.includes('Geopolitics') || nicheName.includes('History')) {
+    return `• HOOK: dramatic wide map zoom-into region\n• MAP B-ROLL: animated borders / arrows / flags\n• ARCHIVAL: period photos with Ken Burns slow zoom\n• PORTRAIT: key figure / leader close-up\n• THUMBNAIL: map + dominant flag or leader face`;
+  }
+  if (visualApproach.toLowerCase().includes('stock') || nicheName.includes('Business') || nicheName.includes('Real Estate')) {
+    return `• HERO: stock footage of company building / founder b-roll\n• CHART: animated revenue / stock / growth graph\n• LOGO STING: company logo reveal\n• CONTEXT: industry / product shots\n• CEO TRADE: founder public domain photo / archive`;
+  }
+  return `• HOOK: single iconic image / scene that poses the central question\n• SCENE 1: establishing wide, cinematic\n• SCENE 2: medium detail, orientation\n• SCENE 3: close-up / texture, emotional anchor\n• THUMBNAIL: high-contrast hero frame + readable text`;
+}
+
+function getVoiceType(pacingStyle, nicheName) {
+  if (pacingStyle.includes('calm') || pacingStyle.includes('slow') || pacingStyle.includes('hypnotic') || pacingStyle.includes('soothing')) {
+    return 'Deep, warm, slow-tempo male or female (e.g., ElevenLabs "Adam", "Antoni", "Bella", "Grace")';
+  }
+  if (pacingStyle.includes('authoritative') || pacingStyle.includes('professional') || pacingStyle.includes('analytical')) {
+    return 'Clear, authoritative, mid-range professional (e.g., ElevenLabs "Brian", "Daniel", "Charlotte", "Sophie")';
+  }
+  if (pacingStyle.includes('storytelling') || pacingStyle.includes('measured')) {
+    return 'Storyteller timbre, expressive but controlled (e.g., ElevenLabs "David", "Liam", "Serena")';
+  }
+  return 'Clear, engaging, versatile (test 4-5 voices)';
+}
+
+function getStability(pacingStyle) {
+  if (pacingStyle.includes('slow') || pacingStyle.includes('calm') || pacingStyle.includes('hypnotic')) return '85-95';
+  if (pacingStyle.includes('fast') || pacingStyle.includes('energetic')) return '50-65';
+  return '70-80';
+}
+
+function getSimilarity(pacingStyle) {
+  if (pacingStyle.includes('hypnotic') || pacingStyle.includes('soothing')) return 'Low (15-25%)';
+  if (pacingStyle.includes('authoritative') || pacingStyle.includes('professional')) return 'Medium (30-40%)';
+  return 'Medium (30-40%)';
+}
+
+function getSpeed(pacingStyle) {
+  if (pacingStyle.includes('slow') || pacingStyle.includes('calm') || pacingStyle.includes('hypnotic')) return '0.85-0.95';
+  if (pacingStyle.includes('fast') || pacingStyle.includes('energetic') || pacingStyle.includes('moderately fast')) return '1.05-1.15';
+  return '1.0';
+}
+
+function getVoiceSettingsByNiche(nicheName) {
+  const settings = {
+    'Ancient Mysteries / Dark History': 'Stability: 90, Similarity: 20%, Speed: 0.9, Voice: Deep male (Adam/Arnold)',
+    'Sleep & Meditation Content': 'Stability: 95, Similarity: 15%, Speed: 0.85, Voice: Soft female (Grace/Bella)',
+    'True Crime Documentaries': 'Stability: 80, Similarity: 35%, Speed: 1.0, Voice: Serious male (Brian/David)',
+    'AI & Tech Explainers': 'Stability: 70, Similarity: 40%, Speed: 1.1, Voice: Clear professional (Charlotte/Emily)',
+    'Personal Finance Explainers': 'Stability: 75, Similarity: 35%, Speed: 1.05, Voice: Trustworthy (Daniel/Serena)',
+    'Business Case Studies': 'Stability: 75, Similarity: 35%, Speed: 1.0, Voice: Executive (Liam/Charlotte)',
+    'History Documentaries': 'Stability: 85, Similarity: 25%, Speed: 0.95, Voice: Narrator (Arnold/David)',
+    'Science & Space': 'Stability: 80, Similarity: 30%, Speed: 1.0, Voice: Wonder-driven (Sophie/Emily)'
+  };
+  return settings[nicheName] || 'Stability: 75, Similarity: 35%, Speed: 1.0, Voice: Test 4-5 options';
+}
+
+function getColorGrade(nicheName) {
+  const grades = {
+    'Ancient Mysteries / Dark History': 'Teal-orange split tone, crushed blacks, film grain overlay',
+    'Sleep & Meditation Content': 'Cool shadows, warm highlights, soft glow, reduced contrast',
+    'True Crime Documentaries': 'High contrast, desaturated, cold shadows, selective color (red accents)',
+    'AI & Tech Explainers': 'Clean digital, slight cyan-teal lift, crisp blacks',
+    'Luxury Watches & Collectibles': 'High key, controlled reflections, true blacks, macro detail pop',
+    'Science & Space': 'Deep blacks, star-field preservation, nebula color pop'
+  };
+  return grades[nicheName] || 'Standard cinematic grade';
+}
+
+// Qualification checks - more flexible to allow AI-generated channels
 function checkQualification(channelData, videos, nicheResult) {
   const fails = [];
+  const warnings = [];
 
-  if (channelData.videoCount < 50) {
-    fails.push(`This channel has ${channelData.videoCount} videos — we need at least 50 to identify a reliable content pattern.`);
+  // Video count - reduced minimum, allow more channels
+  if (channelData.videoCount < 10) {
+    fails.push(`This channel has only ${channelData.videoCount} videos — we need at least 10 to identify a content pattern.`);
+  } else if (channelData.videoCount < 30) {
+    warnings.push(`This channel has ${channelData.videoCount} videos — more videos would give a more reliable analysis.`);
   }
 
-  const avgViews = videos.slice(0, 30).reduce((sum, v) => sum + v.viewCount, 0) / Math.min(videos.length, 30);
-  if (channelData.subscriberCount < 1000 || avgViews < 1000) {
-    fails.push('This channel does not meet the monetization proxy (1000+ subscribers and 1000+ average views per video).');
+  // Subscriber/view thresholds - more flexible
+  const recentVideos = videos.slice(0, 30);
+  const avgViews = recentVideos.length > 0 ? recentVideos.reduce((sum, v) => sum + v.viewCount, 0) / recentVideos.length : 0;
+
+  const isLikelyAI = nicheResult.aiDetection?.isLikelyAI || false;
+  const hasGoodNicheMatch = nicheResult.niche && nicheResult.score >= 0.35;
+
+  // For AI-generated channels, we can be more lenient on monetization thresholds
+  const minSubs = isLikelyAI ? 100 : 500;
+  const minAvgViews = isLikelyAI ? 100 : 500;
+
+  if (channelData.subscriberCount < minSubs || avgViews < minAvgViews) {
+    if (channelData.subscriberCount >= 1000 && avgViews >= 1000) {
+      // This shouldn't happen with the thresholds above, but just in case
+    } else if (isLikelyAI || hasGoodNicheMatch) {
+      // For AI channels or good niche matches, show warning instead of fail
+      warnings.push(`Channel has ${channelData.subscriberCount.toLocaleString()} subscribers and ${Math.round(avgViews).toLocaleString()} avg views — below typical monetization levels but acceptable for AI-produced content analysis.`);
+    } else {
+      fails.push(`This channel does not meet minimum thresholds (${minSubs}+ subscribers and ${minAvgViews}+ average views per video). Current: ${channelData.subscriberCount.toLocaleString()} subs, ${Math.round(avgViews).toLocaleString()} avg views.`);
+    }
   }
 
+  // Niche match - more flexible
   if (!nicheResult.niche) {
-    fails.push('This channel does not match any of our supported AI-producible niches.');
+    if (isLikelyAI) {
+      // If AI detected but no niche match, try to assign best matching niche anyway
+      fails.push('This channel appears to use AI tools but does not clearly match a supported niche. Try a channel with more focused content.');
+    } else {
+      fails.push('This channel does not match any of our supported AI-producible niches.');
+    }
   }
 
-  return fails;
+  return { fails, warnings, isLikelyAI, hasGoodNicheMatch };
 }
 
 // Alternative suggestions (hardcoded for Phase 1, expanded to one per niche)
@@ -589,11 +965,24 @@ app.post('/clone-channel', async (req, res) => {
     const cadenceDays = calculateCadence(videos);
     const nicheResult = classifyNiche(channelData, videos);
 
-    const fails = checkQualification(channelData, videos, nicheResult);
-    if (fails.length > 0) {
+    const qualification = checkQualification(channelData, videos, nicheResult);
+
+    // If there are hard fails, return disqualified
+    if (qualification.fails.length > 0) {
       return res.json({
         status: 'disqualified',
-        reasons: fails,
+        reasons: qualification.fails,
+        warnings: qualification.warnings,
+        suggestions: alternativeSuggestions
+      });
+    }
+
+    // Check if we have a valid niche (even with warnings, we can qualify)
+    if (!nicheResult.niche) {
+      return res.json({
+        status: 'disqualified',
+        reasons: ['Unable to determine a clear niche for this channel.'],
+        warnings: qualification.warnings,
         suggestions: alternativeSuggestions
       });
     }
@@ -601,13 +990,18 @@ app.post('/clone-channel', async (req, res) => {
     const rpm = nicheResult.niche.rpm;
     const revenue = estimateRevenue(videos, cadenceDays, rpm);
 
+    // Add uploadCadence to nicheResult for prompt generation
+    nicheResult.uploadCadence = cadenceDays ? `~${Math.round(cadenceDays)} day(s)` : 'Consistent schedule (e.g., weekly)';
+
     const channelCard = buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult);
-    const prompts = buildPromptTemplates(nicheResult.niche, channelData, videos);
+    const prompts = buildPromptTemplates(nicheResult.niche, channelData, videos, nicheResult);
 
     res.json({
       status: 'qualified',
       channelCard,
-      prompts
+      prompts,
+      warnings: qualification.warnings,
+      aiDetection: nicheResult.aiDetection
     });
   } catch (error) {
     console.error(error);
