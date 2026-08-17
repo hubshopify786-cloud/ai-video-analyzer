@@ -465,3 +465,54 @@ button:active {
   word-break: break-word;
   margin: 0;
 }
+.prompts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.prompt-card {
+  background: #111a2b;
+  border: 1px solid #27344b;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.prompt-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prompt-card-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.prompt-card pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #0a101b;
+  padding: 16px;
+  border-radius: 12px;
+  color: #dfe5ef;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.copy-btn, .export-btn {
+  background: #ffc400;
+  color: #08101c;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.copy-btn:hover, .export-btn:hover {
+  transform: translateY(-1px);
+}

@@ -71,10 +71,16 @@
         <div id="toolStackContainer" class="tools"></div>
       </div>
 
-      <div id="promptBlueprintSection">
-        <h2>📋 5-Step Clone Playbook</h2>
-        <p style="margin-bottom: 1.5rem;">Copy each prompt into the matching tool, in order.</p>
-        <div id="promptsContainer" class="prompts-grid"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <h2>📋 5-Step Clone Playbook</h2>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button id="exportHtmlBtn" class="export-btn">📥 HTML</button>
+      <button id="exportPdfBtn" class="export-btn">📄 PDF</button>
+      <button id="exportDocxBtn" class="export-btn">📝 DOCX</button>
+      </div>
+      </div>
+      <p style="margin-bottom: 1.5rem;">Copy each prompt or export the full playbook as a styled HTML file.</p>
+      <div id="promptsContainer" class="prompts-grid"></div>
       </div>
     </div>
   </div>
