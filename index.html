@@ -9,114 +9,72 @@
 <body>
   <div class="main-container">
     <h1>AI Video Analyzer</h1>
-    <p>Paste a video link to start.</p>
-    <input id="videoUrl" type="text" placeholder="Paste video URL here">
-    <p id="errorMsg" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
-    <button id="analyzeBtn">Analyze</button>
+    <p>Paste a YouTube channel to reverse-engineer its format and get a clone playbook.</p>
 
-    <div id="channelForm" style="margin-top: 2rem;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">📊 Channel Analysis</h2>
-      <p>Paste a YouTube channel URL or handle to see what tools that creator uses across their videos.</p>
+    <div id="cloneForm">
       <input id="channelUrl" type="text" placeholder="Channel URL or @handle">
-      <p id="channelError" hidden style="color: #ef4444; font-size: 0.9rem;"></p>
-      <button id="analyzeChannelBtn">Analyze Channel</button>
-    </div>
-
-    <div id="compareForm" style="margin-top: 2rem;">
-      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚖️ Channel Comparison</h2>
-      <p>Compare the tool stacks of two YouTube channels.</p>
-      <input id="compareChannel1" type="text" placeholder="First channel URL or @handle">
-      <input id="compareChannel2" type="text" placeholder="Second channel URL or @handle">
-      <p id="compareError" hidden style="color: #ef4444; font-size: 0.9rem;"></p>
-      <button id="compareBtn">Compare Channels</button>
+      <p id="channelError" hidden style="color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem;"></p>
+      <button id="cloneBtn">Clone Channel</button>
     </div>
 
     <div id="loading" hidden>
       <div class="spinner"></div>
-      <p>Analyzing video...</p>
-    </div>
-
-    <div id="channelLoading" hidden>
-      <div class="spinner"></div>
       <p>Analyzing channel...</p>
     </div>
 
-    <div id="compareLoading" hidden>
-      <div class="spinner"></div>
-      <p>Comparing channels...</p>
+    <!-- Disqualified state: reasons + alternative suggestions -->
+    <div id="disqualifiedDashboard" hidden>
+      <h2>Channel Not Yet Cloneable</h2>
+      <p style="margin-bottom: 1rem;">This channel doesn't fit our supported AI-producible niches yet. Here's why:</p>
+      <ul id="reasonsList" class="reasons-list"></ul>
+
+      <h3 style="text-align: center; margin: 2rem 0 1rem;">💡 Try One of These Instead</h3>
+      <div id="suggestionsContainer" class="tools"></div>
     </div>
 
-    <div id="dashboard" hidden>
-      <h2>Video Analysis</h2>
-      <p id="urlDisplay" style="color: #b0b3b8; text-align: center; word-break: break-all; margin-bottom: 1.5rem;"></p>
+    <!-- Qualified state: channel card + tool stack + 5-step playbook -->
+    <div id="cloneDashboard" hidden>
+      <h2>Channel Clone Card</h2>
 
-      <div id="videoInfo" class="video-info">
-        <h3 id="videoTitle"></h3>
-        <p id="videoChannel"></p>
-        <p id="videoStats"></p>
+      <div class="video-info">
+        <div class="channel-header">
+          <h3 id="channelName"></h3>
+          <span id="confidenceBadge" class="badge confidence"></span>
+        </div>
+        <p id="channelStats" class="stats-row"></p>
+        <p id="channelRevenue" class="stats-row" style="color: #4ade80; font-weight: 600;"></p>
+        <p id="channelNiche"></p>
       </div>
 
       <div class="metrics">
         <div class="metric">
-          <h3>🔥 Niche Potential</h3>
-          <p id="metricNiche">High</p>
+          <h3>🎨 Format Fingerprint</h3>
+          <p id="metricFormat"></p>
         </div>
         <div class="metric">
-          <h3>👥 Audience Size</h3>
-          <p id="metricAudience">1.2M</p>
+          <h3>🎬 Pacing Style</h3>
+          <p id="metricPacing"></p>
         </div>
         <div class="metric">
-          <h3>⚔️ Competition</h3>
-          <p id="metricCompetition">Medium</p>
-        </div>
-        <div class="metric">
-          <h3>📉 Creator Saturation</h3>
-          <p id="metricSaturation">Low</p>
-        </div>
-        <div class="metric">
-          <h3>💰 Estimated RPM</h3>
-          <p id="metricRPM">$8.50</p>
-        </div>
-        <div class="metric">
-          <h3>📈 Growth Potential</h3>
-          <p id="metricGrowth">Strong</p>
+          <h3>🖼️ Visual Approach</h3>
+          <p id="metricVisual"></p>
         </div>
       </div>
 
-      <div id="detectedToolsSection">
-        <h2>🔍 Tools Detected in Description</h2>
-        <div id="detectedToolsContainer" class="tools"></div>
+      <div class="info-block">
+        <h3>🧠 Why This Format Works</h3>
+        <p id="whyItWorks"></p>
       </div>
 
-      <div id="toolsSection">
-        <h2>🤖 AI Suggested Tools</h2>
-        <div id="toolsContainer" class="tools"></div>
+      <div id="toolStackSection">
+        <h2>🛠️ Recommended AI Tool Stack</h2>
+        <div id="toolStackContainer" class="tools"></div>
       </div>
-    </div>
 
-    <div id="channelDashboard" hidden>
-      <h2>📈 Channel Analysis Results</h2>
-      <div id="channelInfo" class="video-info" style="text-align: center;">
-        <h3 id="channelTitle"></h3>
-        <p id="channelStats"></p>
-      </div>
-      <h3 style="text-align: center; margin: 1rem 0;">🛠️ Tools Detected Across Channel</h3>
-      <div id="channelToolsContainer" class="tools"></div>
-    </div>
-
-    <div id="compareDashboard" hidden>
-      <h2>⚖️ Comparison Results</h2>
-      <div class="compare-container">
-        <div class="compare-column">
-          <h3 id="compareTitle1"></h3>
-          <p id="compareStats1"></p>
-          <div id="compareTools1" class="tools"></div>
-        </div>
-        <div class="compare-column">
-          <h3 id="compareTitle2"></h3>
-          <p id="compareStats2"></p>
-          <div id="compareTools2" class="tools"></div>
-        </div>
+      <div id="promptBlueprintSection">
+        <h2>📋 5-Step Clone Playbook</h2>
+        <p style="margin-bottom: 1.5rem;">Copy each prompt into the matching tool, in order.</p>
+        <div id="promptsContainer" class="prompts-grid"></div>
       </div>
     </div>
   </div>

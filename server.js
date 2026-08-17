@@ -8,77 +8,57 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Load tool database from tools.json
+// Load tool database (we still use this for tool stack detection)
 const toolsDatabase = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'tools.json'), 'utf8')
 );
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// Map common YouTube category IDs (fallback)
-const categoryMap = {
-  '1': 'Film & Animation',
-  '2': 'Autos & Vehicles',
-  '10': 'Music',
-  '15': 'Pets & Animals',
-  '17': 'Sports',
-  '19': 'Travel & Events',
-  '20': 'Gaming',
-  '22': 'People & Blogs',
-  '23': 'Comedy',
-  '24': 'Entertainment',
-  '25': 'News & Politics',
-  '26': 'Howto & Style',
-  '27': 'Education',
-  '28': 'Science & Technology',
-  '29': 'Nonprofits & Activism'
-};
-
-// Extract video ID from common YouTube URL formats
-function extractVideoId(url) {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=)([^&]+)/,
-    /(?:youtu\.be\/)([^?]+)/,
-    /(?:youtube\.com\/shorts\/)([^?]+)/
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
-    }
+// Supported niches with their parameters
+const niches = [
+  {
+    id: 'ancient-mysteries',
+    name: 'Ancient Mysteries / Dark History',
+    rpm: 9,
+    videoLengthMin: 60,
+    videoLengthMax: 120,
+    keywords: ['mystery', 'mysteries', 'ancient', 'unexplained', 'dark history', 'documentary', 'impossible', 'discoveries'],
+    aiTools: [
+      { name: 'Claude', purpose: 'Script writing' },
+      { name: 'ElevenLabs', purpose: 'Voiceover (high stability)' },
+      { name: 'Midjourney', purpose: 'Cinematic visuals' },
+      { name: 'CapCut', purpose: 'Video editing' }
+    ],
+    whyItWorks: 'Mid-roll ads across 90 min = 6-8x the ad revenue of a 10-min video. Viewers fall asleep to it and replay. Algorithm loves the watch time.',
+    formatFingerprint: '90-100 min chaptered countdown documentary (7-12 mysteries per video)',
+    pacingStyle: 'Calm, atmospheric, slow — sleep and background content',
+    visualApproach: 'Cinematic stills + Ken Burns slow zoom · muted earth tones · golden hour lighting'
   }
-  return null;
-}
+  // Later: finance, true crime, sleep, AI/tech, business
+];
 
-// Extract channel identifier from URL or handle
+// Helper: extract channel identifier (already exists)
 function extractChannelIdentifier(input) {
   if (!input) return null;
   input = input.trim();
 
   const handleMatch = input.match(/youtube\.com\/@([^/?]+)/);
-  if (handleMatch) {
-    return { type: 'handle', value: handleMatch[1] };
-  }
+  if (handleMatch) return { type: 'handle', value: handleMatch[1] };
 
   const idMatch = input.match(/youtube\.com\/channel\/([^/?]+)/);
-  if (idMatch) {
-    return { type: 'id', value: idMatch[1] };
-  }
+  if (idMatch) return { type: 'id', value: idMatch[1] };
 
-  if (input.startsWith('@')) {
-    return { type: 'handle', value: input.substring(1) };
-  }
+  const cMatch = input.match(/youtube\.com\/c\/([^/?]+)/);
+  if (cMatch) return { type: 'handle', value: cMatch[1] }; // /c/ can be a custom name, treat as handle
 
-  if (input.startsWith('UC')) {
-    return { type: 'id', value: input };
-  }
+  if (input.startsWith('@')) return { type: 'handle', value: input.substring(1) };
+  if (input.startsWith('UC')) return { type: 'id', value: input };
 
   return null;
 }
 
-// Fetch channel data from YouTube API
+// Helper: fetch channel metadata
 async function getChannelData(identifier) {
   let params;
   if (identifier.type === 'handle') {
@@ -96,61 +76,147 @@ async function getChannelData(identifier) {
   }
 
   const channel = data.items[0];
-  return {
+      return {
+    channelId: channel.id,
     title: channel.snippet.title,
-    subscriberCount: channel.statistics.subscriberCount,
-    videoCount: channel.statistics.videoCount,
+    description: channel.snippet.description || '',
+    subscriberCount: parseInt(channel.statistics.subscriberCount) || 0,
+    videoCount: parseInt(channel.statistics.videoCount) || 0,
     uploadsPlaylistId: channel.contentDetails.relatedPlaylists.uploads
   };
 }
 
-// Fetch latest videos from channel's uploads playlist
-async function getChannelVideos(playlistId, maxResults = 10) {
-  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${maxResults}&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}`;
+// Helper: fetch video IDs from uploads playlist
+async function getVideoIds(playlistId, maxResults = 30) {
+  const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=${maxResults}&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}`;
   const response = await fetch(apiUrl);
   const data = await response.json();
 
-  if (!data.items || data.items.length === 0) {
-    return [];
-  }
+  if (!data.items || data.items.length === 0) return [];
 
-  return data.items.map(item => ({
-    title: item.snippet.title,
-    description: item.snippet.description || '',
-    publishedAt: item.snippet.publishedAt,
-    videoId: item.snippet.resourceId.videoId
+  return data.items.map(item => item.contentDetails.videoId);
+}
+
+// Helper: batch fetch video details
+async function getVideosDetails(videoIds) {
+  if (videoIds.length === 0) return [];
+
+  const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+
+  if (!data.items) return [];
+
+  return data.items.map(video => ({
+    videoId: video.id,
+    title: video.snippet.title,
+    description: video.snippet.description || '',
+    publishedAt: video.snippet.publishedAt,
+    duration: video.contentDetails.duration,
+    viewCount: parseInt(video.statistics.viewCount) || 0
   }));
 }
 
-// Fetch single video data from YouTube API
-async function getYouTubeVideoData(videoId) {
-  const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,statistics&key=${YOUTUBE_API_KEY}`;
-  const response = await fetch(apiUrl);
-  const data = await response.json();
+// Helper: convert ISO 8601 duration to minutes
+function durationToMinutes(isoDuration) {
+  const match = isoDuration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  const hours = match[1] ? parseInt(match[1]) : 0;
+  const minutes = match[2] ? parseInt(match[2]) : 0;
+  const seconds = match[3] ? parseInt(match[3]) : 0;
+  return hours * 60 + minutes + seconds / 60;
+}
 
-  if (!data.items || data.items.length === 0) {
-    throw new Error('Video not found');
+// Helper: median
+function median(arr) {
+  if (arr.length === 0) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// Helper: calculate upload cadence in days from video publish dates
+function calculateCadence(videos) {
+  if (videos.length < 2) return null;
+
+  const dates = videos.map(v => new Date(v.publishedAt).getTime()).sort((a, b) => a - b);
+  const gaps = [];
+  for (let i = 1; i < dates.length; i++) {
+    const diffDays = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
+    if (diffDays > 0) gaps.push(diffDays);
   }
 
-  const video = data.items[0];
+  if (gaps.length === 0) return null;
+  return median(gaps);
+}
+
+// Helper: estimate monthly revenue using rolling 90-day window
+function estimateRevenue(videos, cadenceDays, rpm) {
+  if (videos.length === 0 || !cadenceDays) return null;
+
+  // Use last 12 videos (approximately 90 days for weekly channel)
+  const recent = videos.slice(0, 12);
+  if (recent.length === 0) return null;
+
+  const avgViews = recent.reduce((sum, v) => sum + v.viewCount, 0) / recent.length;
+  const uploadsPerMonth = 30 / cadenceDays;
+  const monthlyViews = avgViews * uploadsPerMonth;
+  const monthlyRevenue = (monthlyViews * rpm) / 1000;
+
+  const low = monthlyRevenue * 0.85;
+  const high = monthlyRevenue * 1.15;
+  return { low, high, midpoint: monthlyRevenue };
+}
+
+// Helper: classify niche using three-signal scoring
+function classifyNiche(channelData, videos) {
+  // For Phase 1, only Ancient Mysteries is defined.
+  const niche = niches[0];
+
+  // Signal 1: title keyword density
+  const recentTitles = videos.slice(0, 30).map(v => v.title.toLowerCase());
+  const titleMatches = recentTitles.filter(title =>
+    niche.keywords.some(keyword => title.includes(keyword))
+  ).length;
+  const titleDensity = recentTitles.length > 0 ? titleMatches / recentTitles.length : 0;
+
+  // Signal 2: median video length
+  const durations = videos.slice(0, 30).map(v => durationToMinutes(v.duration));
+  const medianDuration = median(durations);
+  const lengthInRange = medianDuration >= niche.videoLengthMin && medianDuration <= niche.videoLengthMax;
+
+  // Signal 3: channel description keywords
+  const desc = channelData.description.toLowerCase();
+  const descMatches = niche.keywords.filter(keyword => desc.includes(keyword)).length;
+
+  // Weighted scoring (40% title, 35% length, 25% description)
+  const titleScore = titleDensity >= 0.6 ? 1 : titleDensity / 0.6; // scale to 1
+  const lengthScore = lengthInRange ? 1 : 0;
+  const descScore = descMatches > 0 ? 1 : 0;
+
+  const totalScore = (titleScore * 0.4) + (lengthScore * 0.35) + (descScore * 0.25);
+
+  let confidence = 'low';
+  if (totalScore >= 0.75) confidence = 'high';
+  else if (totalScore >= 0.5) confidence = 'medium';
+
+  const matched = totalScore >= 0.5;
+
   return {
-    title: video.snippet.title,
-    channel: video.snippet.channelTitle,
-    description: video.snippet.description || '',
-    publishedAt: video.snippet.publishedAt,
-    viewCount: video.statistics.viewCount,
-    likeCount: video.statistics.likeCount,
-    categoryId: video.snippet.categoryId
+    niche: matched ? niche : null,
+    confidence,
+    titleDensity,
+    medianDuration,
+    lengthInRange,
+    descMatches
   };
 }
 
-// Scan description for known tools
+// Scan description for tools (reused)
 function scanDescription(description, tools) {
   const lowerDesc = description.toLowerCase();
   const detected = [];
-
-  tools.forEach((tool) => {
-    const match = tool.aliases.some((alias) => lowerDesc.includes(alias));
+  tools.forEach(tool => {
+    const match = tool.aliases.some(alias => lowerDesc.includes(alias));
     if (match) {
       detected.push({
         name: tool.name,
@@ -159,191 +225,93 @@ function scanDescription(description, tools) {
       });
     }
   });
-
   return detected;
 }
 
-// Format audience size as K/M
-function formatAudienceSize(num) {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-  return num.toString();
-}
+// Build channel card for qualified channel
+function buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult) {
+  const niche = nicheResult.niche;
+  const recentViews = videos.slice(0, 12).map(v => v.viewCount);
+  const avgViews = recentViews.length > 0 ? recentViews.reduce((a, b) => a + b, 0) / recentViews.length : 0;
 
-// Fallback rule-based estimates
-function estimateMetrics(videoData) {
-  const categoryName = categoryMap[videoData.categoryId] || 'Unknown';
-  const viewCount = parseInt(videoData.viewCount) || 0;
-  const publishedAt = new Date(videoData.publishedAt);
-  const daysSincePublished = Math.max(1, Math.floor((Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24)));
-  const viewsPerDay = viewCount / daysSincePublished;
-
-  let niche = 'Medium';
-  if (['Education', 'Science & Technology', 'Howto & Style', 'News & Politics'].includes(categoryName)) {
-    niche = 'High';
-  } else if (['Music', 'Film & Animation', 'Autos & Vehicles'].includes(categoryName)) {
-    niche = 'Low';
-  }
-
-  let competition = 'Low';
-  if (viewCount > 1000000) competition = 'High';
-  else if (viewCount > 100000) competition = 'Medium';
-
-  let saturation = 'Low';
-  if (viewCount > 2000000) saturation = 'High';
-  else if (viewCount > 200000) saturation = 'Medium';
-
-  let rpm = '$3.50';
-  if (['Education', 'Science & Technology', 'News & Politics'].includes(categoryName)) {
-    rpm = '$8.00';
-  } else if (['Gaming', 'Entertainment', 'Comedy'].includes(categoryName)) {
-    rpm = '$4.00';
-  } else if (['Music', 'Film & Animation'].includes(categoryName)) {
-    rpm = '$2.00';
-  }
-
-  let growth = 'Moderate';
-  if (viewsPerDay > 5000) growth = 'Strong';
-  else if (viewsPerDay < 500) growth = 'Weak';
-
-  const estimatedNicheAudience = viewCount * 20;
+  const toolStack = niche.aiTools; // For Phase 1 hardcoded per niche
 
   return {
-    niche,
-    audience: formatAudienceSize(estimatedNicheAudience),
-    competition,
-    saturation,
-    rpm,
-    growth
+    name: channelData.title,
+    url: `https://www.youtube.com/channel/${channelData.channelId}`,
+    subscribers: channelData.subscriberCount,
+    videoCount: channelData.videoCount,
+    uploadCadence: cadenceDays ? `~${Math.round(cadenceDays)} day(s)` : 'Unknown',
+    estimatedMonthlyRevenue: revenue ? `$${Math.round(revenue.low)}-$${Math.round(revenue.high)}` : 'Unknown',
+    niche: niche.name,
+    confidence: nicheResult.confidence,
+    formatFingerprint: niche.formatFingerprint,
+    pacingStyle: niche.pacingStyle,
+    visualApproach: niche.visualApproach,
+    whyItWorks: niche.whyItWorks,
+    aiToolStack: toolStack
   };
 }
 
-// Call OpenRouter API to analyze video metadata
-async function analyzeWithOpenRouter(videoData) {
-  const prompt = `
-You are an expert content strategy analyst. Given the following YouTube video metadata, provide realistic estimates for:
-- Niche potential (High, Medium, Low)
-- Audience size: estimated total global audience interested in this niche (not just this video's views). Provide as a string, e.g. "2.5M" or "850K".
-- Competition (High, Medium, Low)
-- Creator saturation (High, Medium, Low)
-- Estimated RPM (as a string, e.g. "$8.50")
-- Growth potential (Strong, Moderate, Weak)
-- Likely AI tools used to create the video (list 4-6 tools with name and purpose)
+// Build 5-step prompt templates (Phase 1: filled with niche defaults)
+function buildPromptTemplates(niche, channelData, videos) {
+  // Extract common title pattern: most frequent words/length pattern (simple)
+  const titles = videos.slice(0, 30).map(v => v.title);
+  const titlePattern = titles.length > 0 ? titles[0] : 'Sample title'; // placeholder
 
-Return ONLY valid JSON in this exact shape:
-{
-  "metrics": {
-    "niche": "string",
-    "audience": "string",
-    "competition": "string",
-    "saturation": "string",
-    "rpm": "string",
-    "growth": "string"
-  },
-  "tools": [
-    { "name": "string", "purpose": "string" }
-  ]
-}
-
-Video metadata:
-Title: ${videoData.title}
-Channel: ${videoData.channel}
-Description: ${videoData.description}
-Category ID: ${videoData.categoryId}
-Views: ${videoData.viewCount}
-Likes: ${videoData.likeCount}
-Published: ${videoData.publishedAt}
-`;
-
-  const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json'
+  return {
+    step1: {
+      title: 'Step 1 — Topic Prompt',
+      content: `Paste this into Claude:\nGenerate 10 video ideas for a ${niche.name} channel following this exact format:\n- Video length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- Title style: ${titlePattern}\n- Topic types: ${niche.keywords.join(', ')}`
     },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error('OpenRouter API request failed');
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || '';
-
-  const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error('Could not parse AI response');
-  }
-
-  return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+    step2: {
+      title: 'Step 2 — Script Prompt',
+      content: `Paste this into Claude:\nWrite a full ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video on [TOPIC].\nStructure:\n- 7-12 chapters with mystery-like titles\n- Calm, atmospheric narration\n- Include historical context and unexplained details`
+    },
+    step3: {
+      title: 'Step 3 — Image Prompt',
+      content: `Paste this into Claude:\nGenerate 20 image prompts for Midjourney/Higgsfield, one per scene.\nStyle: cinematic stills, muted earth tones, golden hour lighting, Ken Burns slow zoom.\nAspect ratio: 16:9`
+    },
+    step4: {
+      title: 'Step 4 — Voice Settings',
+      content: `ElevenLabs settings:\n- Voice type: deep, calm, slightly gravelly male — late night documentary register\n- Stability: 90\n- Style exaggeration: Low\n- Test: 3-4 voices with same 200-word passage`
+    },
+    step5: {
+      title: 'Step 5 — Assembly Workflow',
+      content: `Editing instructions:\n- Image timing: 45-75 sec per image, very slow Ken Burns zoom\n- Music: low drones, soft atmosphere at -20dB under narration (Suno/Epidemic Sound)\n- Add YouTube chapters for every section\n- Thumbnail: one epic cinematic image + 2-4 words max\n- Upload cadence: one video per week\n- Disclosure: Add YouTube's AI-generated content label`
+    }
+  };
 }
 
-// Analyze single video
-app.post('/analyze', async (req, res) => {
-  const videoUrl = req.body.videoUrl;
-  const videoId = extractVideoId(videoUrl);
+// Qualification checks
+function checkQualification(channelData, videos, nicheResult) {
+  const fails = [];
 
-  if (!videoId) {
-    return res.status(400).json({ error: 'Invalid YouTube URL' });
+  if (channelData.videoCount < 50) {
+    fails.push(`This channel has ${channelData.videoCount} videos — we need at least 50 to identify a reliable content pattern.`);
   }
 
-  try {
-    const videoData = await getYouTubeVideoData(videoId);
-    const detectedTools = scanDescription(videoData.description, toolsDatabase);
-    let analysis;
-
-    try {
-      analysis = await analyzeWithOpenRouter(videoData);
-    } catch (aiError) {
-      console.warn('AI analysis failed, falling back to rule-based:', aiError.message);
-      analysis = {
-        metrics: estimateMetrics(videoData),
-        tools: [
-          { name: 'Cutwise', purpose: 'AI video editing' },
-          { name: 'VoiceSynth', purpose: 'AI voiceover' },
-          { name: 'ThumbnailPro', purpose: 'AI thumbnails' },
-          { name: 'ScriptFlow', purpose: 'AI script writing' },
-          { name: 'TrendRadar', purpose: 'Trend discovery' },
-          { name: 'Captionly', purpose: 'Auto captions' }
-        ]
-      };
-    }
-
-    // Override audience size with our own niche estimate
-    const viewCountForAudience = parseInt(videoData.viewCount) || 0;
-    const estimatedNicheAudience = viewCountForAudience * 20;
-    analysis.metrics.audience = formatAudienceSize(estimatedNicheAudience);
-
-    res.json({
-      url: videoUrl,
-      video: videoData,
-      metrics: analysis.metrics,
-      tools: analysis.tools,
-      detectedTools: detectedTools
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to analyze video. Make sure the URL is valid and API keys are correct.' });
+  const avgViews = videos.slice(0, 30).reduce((sum, v) => sum + v.viewCount, 0) / Math.min(videos.length, 30);
+  if (channelData.subscriberCount < 1000 || avgViews < 1000) {
+    fails.push('This channel does not meet the monetization proxy (1000+ subscribers and 1000+ average views per video).');
   }
-});
 
-// Analyze channel
-app.post('/analyze-channel', async (req, res) => {
+  if (!nicheResult.niche) {
+    fails.push('This channel does not match any of our supported AI-producible niches.');
+  }
+
+  return fails;
+}
+
+// Alternative suggestions (hardcoded for Phase 1)
+const alternativeSuggestions = [
+  { name: 'Uncharted Mysteries', niche: 'Ancient Mysteries', handle: '@TheUnchartedMysteries' },
+  { name: 'Andrei Jikh', niche: 'Finance', handle: '@AndreiJikh' },
+  { name: 'JCS Criminal Psychology', niche: 'True Crime', handle: '@JCS' }
+];
+
+// New endpoint: /clone-channel
+app.post('/clone-channel', async (req, res) => {
   const channelInput = req.body.channelUrl;
   const identifier = extractChannelIdentifier(channelInput);
 
@@ -352,114 +320,52 @@ app.post('/analyze-channel', async (req, res) => {
   }
 
   try {
+    // 1. Fetch channel metadata
     const channelData = await getChannelData(identifier);
-    const videos = await getChannelVideos(channelData.uploadsPlaylistId, 10);
 
-    const toolAggregation = {};
+    // 2. Fetch video IDs
+    const videoIds = await getVideoIds(channelData.uploadsPlaylistId, 30);
 
-    videos.forEach(video => {
-      const detected = scanDescription(video.description, toolsDatabase);
-      detected.forEach(tool => {
-        if (!toolAggregation[tool.name]) {
-          toolAggregation[tool.name] = {
-            category: tool.category,
-            count: 0
-          };
-        }
-        toolAggregation[tool.name].count += 1;
+    // 3. Fetch video details
+    const videos = await getVideosDetails(videoIds);
+
+    // 4. Compute cadence
+    const cadenceDays = calculateCadence(videos);
+
+    // 5. Classify niche
+    const nicheResult = classifyNiche(channelData, videos);
+
+    // 6. Qualification checks
+    const fails = checkQualification(channelData, videos, nicheResult);
+    if (fails.length > 0) {
+      return res.json({
+        status: 'disqualified',
+        reasons: fails,
+        suggestions: alternativeSuggestions
       });
-    });
-
-    const detectedTools = Object.keys(toolAggregation).map(name => ({
-      name,
-      category: toolAggregation[name].category,
-      count: toolAggregation[name].count,
-      confidence: 'Confirmed'
-    })).sort((a, b) => b.count - a.count);
-
-    res.json({
-      channel: {
-        title: channelData.title,
-        subscriberCount: channelData.subscriberCount,
-        videoCount: channelData.videoCount
-      },
-      videosAnalyzed: videos.length,
-      detectedTools
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to analyze channel. Make sure the channel URL is valid and API key is correct.' });
-  }
-});
-app.post('/compare-channels', async (req, res) => {
-  const channelInput1 = req.body.channel1;
-  const channelInput2 = req.body.channel2;
-
-  const identifier1 = extractChannelIdentifier(channelInput1);
-  const identifier2 = extractChannelIdentifier(channelInput2);
-
-  if (!identifier1 || !identifier2) {
-    return res.status(400).json({ error: 'Invalid channel URL or handle for one or both channels.' });
-  }
-
-  try {
-    const [channelData1, channelData2] = await Promise.all([
-      getChannelData(identifier1),
-      getChannelData(identifier2)
-    ]);
-
-    const [videos1, videos2] = await Promise.all([
-      getChannelVideos(channelData1.uploadsPlaylistId, 10),
-      getChannelVideos(channelData2.uploadsPlaylistId, 10)
-    ]);
-
-    function aggregateTools(videos) {
-      const toolAggregation = {};
-      videos.forEach(video => {
-        const detected = scanDescription(video.description, toolsDatabase);
-        detected.forEach(tool => {
-          if (!toolAggregation[tool.name]) {
-            toolAggregation[tool.name] = {
-              category: tool.category,
-              count: 0
-            };
-          }
-          toolAggregation[tool.name].count += 1;
-        });
-      });
-
-      return Object.keys(toolAggregation).map(name => ({
-        name,
-        category: toolAggregation[name].category,
-        count: toolAggregation[name].count,
-        confidence: 'Confirmed'
-      })).sort((a, b) => b.count - a.count);
     }
 
-    const tools1 = aggregateTools(videos1);
-    const tools2 = aggregateTools(videos2);
+    // 7. Revenue estimate
+    const rpm = nicheResult.niche.rpm;
+    const revenue = estimateRevenue(videos, cadenceDays, rpm);
+
+    // 8. Build channel card
+    const channelCard = buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult);
+
+    // 9. Build prompts
+    const prompts = buildPromptTemplates(nicheResult.niche, channelData, videos);
 
     res.json({
-      channel1: {
-        title: channelData1.title,
-        subscriberCount: channelData1.subscriberCount,
-        videoCount: channelData1.videoCount,
-        videosAnalyzed: videos1.length,
-        detectedTools: tools1
-      },
-      channel2: {
-        title: channelData2.title,
-        subscriberCount: channelData2.subscriberCount,
-        videoCount: channelData2.videoCount,
-        videosAnalyzed: videos2.length,
-        detectedTools: tools2
-      }
+      status: 'qualified',
+      channelCard,
+      prompts
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to compare channels. Make sure the URLs are valid and API key is correct.' });
+    res.status(500).json({ error: 'Failed to analyze channel. Make sure the URL is valid and API key is correct.' });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
