@@ -3,25 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CreatorRoadmap helps you learn from successful YouTube channels. Paste a channel URL to get a strategic roadmap revealing their content patterns, growth levers, and production approach — so you can adapt those insights to build your own unique channel.">
+  <meta name="keywords" content="YouTube channel analysis, creator roadmap, content strategy, channel growth, YouTube strategy, creator tools, video production workflow">
+  <meta name="author" content="CreatorRoadmap">
+  <meta name="theme-color" content="#070a10">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://creatorroadmap.app/">
+  <meta property="og:title" content="CreatorRoadmap — Learn From Successful Channels">
+  <meta property="og:description" content="Analyze any YouTube channel and get a strategic roadmap to build your own channel inspired by the best.">
+  <meta property="og:image" content="https://creatorroadmap.app/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://creatorroadmap.app/">
+  <meta property="twitter:title" content="CreatorRoadmap — Learn From Successful Channels">
+  <meta property="twitter:description" content="Analyze any YouTube channel and get a strategic roadmap to build your own channel inspired by the best.">
+  <meta property="twitter:image" content="https://creatorroadmap.app/og-image.png">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://creatorroadmap.app/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+
   <title>CreatorRoadmap — Learn From Successful Channels</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "CreatorRoadmap",
+    "description": "Learn from successful YouTube channels. Get strategic roadmaps to build your own channel inspired by the best creators.",
+    "url": "https://creatorroadmap.app/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 </head>
 <body>
 
+  <!-- Header / Navigation -->
+  <header class="site-header" role="banner">
+    <div class="page">
+      <div class="header-inner">
+        <a href="/" class="logo" aria-label="CreatorRoadmap Home" onclick="showScreen('landing'); return false;">
+          <span class="logo-mark" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 10h20M6 16h14M6 22h9" stroke="#ffc400" stroke-width="3.4" stroke-linecap="round"/>
+              <circle cx="27.5" cy="22" r="3" fill="#ffc400"/>
+              <circle cx="22.5" cy="22" r="3" fill="#ffc400" opacity="0.5"/>
+            </svg>
+          </span>
+          <span class="logo-name">CreatorRoadmap</span>
+        </a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="#how-it-works" class="nav-link" onclick="showScreen('how-it-works'); return false;">How it Works</a>
+          <a href="#examples" class="nav-link" onclick="showScreen('examples'); return false;">Example Channels</a>
+          <a href="#faq" class="nav-link" onclick="showScreen('faq'); return false;">FAQ</a>
+          <a href="#contact" class="nav-link" onclick="showScreen('contact'); return false;">Contact</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
   <!-- SCREEN 1 — LANDING -->
-  <div id="screen-landing" class="screen" style="display:block;">
+  <div id="screen-landing" class="screen active">
     <main class="page">
       <header class="hero">
-        <div class="eyebrow">CreatorRoadmap — Learn From Successful Channels</div>
-        <h1>Build your channel.<br>Inspired by the best.</h1>
+        <div class="eyebrow">Learn From Successful Channels</div>
+        <h1>Build your channel. <span class="hl-accent">Inspired by the best.</span></h1>
         <p class="hero-sub">
           Paste a creator's channel URL. Get a strategic roadmap revealing
-          their content patterns, growth levers, and production approach—
+          their content patterns, growth levers, and production approach —
           so you can adapt those insights to build your own unique channel.
         </p>
 
-        <!-- URL input + Analyze button -->
-        <div style="display:flex; gap:12px; margin-top:32px; flex-wrap:wrap;">
+        <div style="display:flex; gap:12px; margin-top:34px; flex-wrap:wrap;">
           <input
             class="url-input"
             id="channelUrl"
@@ -35,19 +106,26 @@
         </div>
 
         <!-- Error display (hidden by default) -->
-        <div id="landingError" style="display:none; margin-top:16px; padding:12px 16px; background:rgba(255,66,66,.15); border:1px solid rgba(255,66,66,.3); border-radius:12px; color:#ff6666; font-size:14px;"></div>
+        <div id="landingError" class="notice red" style="display:none;"></div>
 
         <!-- Loading state (hidden by default, shown while API runs) -->
-        <div id="loadingState" style="display:none; margin-top:20px; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div id="loadingState" style="display:none; margin-top:20px; align-items:center; gap:14px; flex-wrap:wrap;">
           <span style="color:var(--muted); font-size:14px;">Analyzing channel… fetching last 30 videos…</span>
-          <button class="btn-primary" onclick="cancelAnalysis()" style="background:var(--panel); color:var(--text); border:1px solid var(--border); padding:8px 16px; font-size:13px;">Cancel</button>
+          <button class="btn-ghost" onclick="cancelAnalysis()" style="padding:9px 18px; font-size:13px;">Cancel</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><strong>5</strong><span>actionable steps, ready to use</span></div>
+          <div class="stat"><strong>30</strong><span>videos analyzed</span></div>
+          <div class="stat"><strong>AI</strong><span>tool stack detection</span></div>
+          <div class="stat"><strong>Free</strong><span>no sign-up required</span></div>
         </div>
       </header>
 
       <!-- Example preview panel -->
-      <section class="section" style="margin-top:24px;">
+      <section class="section">
         <div class="section-head">
-          <div class="number">?</div>
+          <div class="step-badge ghost">↗</div>
           <div>
             <h2>What you'll get</h2>
             <div class="section-kicker">Example roadmap for Uncharted Mysteries</div>
@@ -56,20 +134,20 @@
         <div class="channel">
           <strong>Uncharted Mysteries</strong> — Ancient Mysteries / Dark History
         </div>
-        <p style="color:var(--muted);">
+        <p style="color:var(--text-2);">
           291K subscribers · 84 videos · ~$9,500/mo est. · 1 upload/week
         </p>
-        <p>
+        <p style="margin-top:14px;">
           Analyze a channel and receive a <strong>strategic creator roadmap</strong> covering:
         </p>
-        <ul style="margin: 12px 0 0 20px; color: var(--text); line-height: 1.8;">
+        <ul class="title-list">
           <li><strong>Content Strategy</strong> — Topic patterns, title formulas, format fingerprint</li>
           <li><strong>Production Approach</strong> — Pacing style, visual aesthetic, AI tool recommendations</li>
           <li><strong>Growth Insights</strong> — Upload cadence, revenue model, audience retention drivers</li>
           <li><strong>Actionable Prompts</strong> — Ready-to-use prompts for ideation, scripting, visuals, voice, and assembly</li>
         </ul>
         <div class="tip">
-          <strong>Who this is for:</strong> Creators who want to learn from successful channels and apply those strategies to build their own unique brand—not copy someone else's.
+          <strong>Who this is for:</strong> Creators who want to learn from successful channels and apply those strategies to build their own unique brand — not copy someone else's.
         </div>
       </section>
 
@@ -78,72 +156,54 @@
   </div>
 
   <!-- SCREEN 2 — NOT SUPPORTED -->
-  <div id="screen-disqualified" class="screen" style="display:none;">
+  <div id="screen-disqualified" class="screen">
     <main class="page">
       <div class="disqualified">
-        <div class="eyebrow" style="color:var(--orange);">Unable to generate roadmap</div>
-        <h2 style="color:var(--orange); margin-top:10px;">We couldn't create a roadmap for this channel</h2>
-        <p id="disqualReason" style="color:var(--muted); font-size:16px; margin-top:8px;">
-          <!-- Populated dynamically -->
+        <div class="eyebrow">Unable to generate roadmap</div>
+        <h2 style="margin-top:12px;">We couldn't create a roadmap for this channel</h2>
+        <p id="disqualReason" style="color:var(--text-2); font-size:16px; margin-top:10px;">
         </p>
       </div>
 
-      <!-- Alternative channel suggestions -->
-      <section class="section" style="margin-top:24px;">
+      <section class="section">
         <div class="section-head">
-          <div class="number blue">→</div>
+          <div class="step-badge ghost">→</div>
           <div>
             <h2>Try one of these example channels</h2>
             <div class="section-kicker">Popular creators across different niches with clear, repeatable strategies</div>
           </div>
         </div>
 
-        <!-- Suggestion cards (one per niche) -->
-        <div class="stats" style="grid-template-columns: repeat(3,1fr);">
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@TheUnchartedMysteries')">
-            <strong style="font-size:16px;">Uncharted Mysteries</strong>
+        <div class="stats">
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@TheUnchartedMysteries')">
+            <strong style="font-size:17px;">Uncharted Mysteries</strong>
             <span>Ancient Mysteries / Dark History</span>
           </div>
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@AndreiJikh')">
-            <strong style="font-size:16px;">Andrei Jikh</strong>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@AndreiJikh')">
+            <strong style="font-size:17px;">Andrei Jikh</strong>
             <span>Personal Finance</span>
           </div>
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@JCSCriminalPsychology')">
-            <strong style="font-size:16px;">JCS Criminal Psychology</strong>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@JCSCriminalPsychology')">
+            <strong style="font-size:17px;">JCS Criminal Psychology</strong>
             <span>True Crime</span>
           </div>
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@YellowBrickCinema')">
-            <strong style="font-size:16px;">Yellow Brick Cinema</strong>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@YellowBrickCinema')">
+            <strong style="font-size:17px;">Yellow Brick Cinema</strong>
             <span>Sleep / Ambient</span>
           </div>
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@AIExplained-9w8')">
-            <strong style="font-size:16px;">AI Explained</strong>
-            <span>AI & Tech Explainers</span>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@AIExplained-9w8')">
+            <strong style="font-size:17px;">AI Explained</strong>
+            <span>AI &amp; Tech Explainers</span>
           </div>
-
-          <div class="stat" style="cursor:pointer;"
-               onclick="prefillAndAnalyze('https://www.youtube.com/@ColdFusion')">
-            <strong style="font-size:16px;">ColdFusion</strong>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@ColdFusion')">
+            <strong style="font-size:17px;">ColdFusion</strong>
             <span>Business Case Studies</span>
           </div>
-
         </div>
       </section>
 
-      <div style="margin-top:24px; text-align:center;">
-        <button class="btn-primary" onclick="showScreen('landing')" style="background:var(--panel); color:var(--text); border:1px solid var(--border);">
-          ← Analyze another channel
-        </button>
+      <div style="margin-top:28px; text-align:center;">
+        <button class="btn-ghost" onclick="showScreen('landing')">← Analyze another channel</button>
       </div>
 
       <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
@@ -151,20 +211,14 @@
   </div>
 
   <!-- SCREEN 3 — RESULTS (Creator Roadmap) -->
-  <div id="screen-results" class="screen" style="display:none;">
+  <div id="screen-results" class="screen">
     <main class="page">
 
       <!-- CHANNEL CARD (hero) -->
       <header class="hero" id="channelCard">
-        <div class="eyebrow" id="resultNiche">
-          <!-- e.g. "Ancient Mysteries / Dark History • Creator Roadmap" -->
-        </div>
-        <h1 id="resultHeadline">
-          <!-- e.g. "Learn their strategy → Build your channel" -->
-        </h1>
-        <p class="hero-sub" id="resultFormat">
-          <!-- e.g. "90-100 min chaptered countdown documentary (7-12 mysteries per video)" -->
-        </p>
+        <div class="eyebrow" id="resultNiche"></div>
+        <h1 id="resultHeadline"></h1>
+        <p class="hero-sub" id="resultFormat"></p>
         <div class="stats">
           <div class="stat">
             <strong id="statSubs"></strong>
@@ -185,41 +239,33 @@
         </div>
       </header>
 
-      <!-- DISCLAIMER BANNER -->
-      <div style="margin-top:16px; padding:14px 18px; background:rgba(99,214,162,.12); border:1px solid rgba(99,214,162,.25); border-radius:12px; color:#63d6a2; font-size:14px; line-height:1.6;">
-        <strong>📋 This roadmap is designed for inspiration and strategic guidance.</strong> Use these insights to develop your own unique channel, content, and brand—not to copy or replicate another creator's identity, branding, or specific content.
+      <div class="notice green" style="margin-top:20px;">
+        <strong>📋 This roadmap is designed for inspiration and strategic guidance.</strong> Use these insights to develop your own unique channel, content, and brand — not to copy or replicate another creator's identity, branding, or specific content.
       </div>
 
       <!-- MAIN ROADMAP SECTION -->
       <section class="section">
         <div class="section-head">
-          <div class="number">1</div>
+          <div class="step-badge">1</div>
           <div>
-            <h2>THE CREATOR (study their approach)</h2>
-            <div class="section-kicker">What makes this channel successful—patterns you can learn from</div>
+            <h2>The Creator (study their approach)</h2>
+            <div class="section-kicker">What makes this channel successful — patterns you can learn from</div>
           </div>
         </div>
 
-        <div class="channel" id="channelRef">
-          <!-- Populated: <strong>Channel Name:</strong> <a href="...">url</a> -->
-        </div>
-
+        <div class="channel" id="channelRef"></div>
         <p id="channelSummaryLine"></p>
-        <!-- e.g. "85 videos → 292K subscribers → est. $9,500/mo → ~7 days uploads" -->
-
-        <p id="whyItWorks"></p>
-        <!-- e.g. "<strong>Why it works:</strong> Mid-roll ads across 90 min = 6-8× the ad revenue…" -->
+        <p id="whyItWorks" style="margin-top:14px;"></p>
 
         <p><strong>Watch 15 minutes of their top video.</strong>
-        Notice the narration pace, visual style, and chapter structure—then ask: <em>How can I adapt this approach for my own voice and audience?</em></p>
+        Notice the narration pace, visual style, and chapter structure — then ask: <em>How can I adapt this approach for my own voice and audience?</em></p>
 
         <div class="divider"></div>
 
-        <!-- STEP 1 -->
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 1</span>
-            <h3>Step 1 — Content Strategy & Ideation</h3>
+            <h3>Content Strategy &amp; Ideation</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -227,11 +273,10 @@
           </div>
         </div>
 
-        <!-- STEP 2 -->
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 2</span>
-            <h3>Step 2 — Script Structure & Storytelling</h3>
+            <h3>Script Structure &amp; Storytelling</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -239,11 +284,10 @@
           </div>
         </div>
 
-        <!-- STEP 3 -->
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 3</span>
-            <h3>Step 3 — Visual Style & Image Prompts</h3>
+            <h3>Visual Style &amp; Image Prompts</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -251,11 +295,10 @@
           </div>
         </div>
 
-        <!-- STEP 4 -->
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 4</span>
-            <h3>Step 4 — Voice & Audio Settings</h3>
+            <h3>Voice &amp; Audio Settings</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
@@ -263,33 +306,31 @@
           </div>
         </div>
 
-        <!-- STEP 5 -->
         <div class="step">
           <div class="step-title">
             <span class="prompt-label">STEP 5</span>
-            <h3>Step 5 — Production & Assembly Workflow</h3>
+            <h3>Production &amp; Assembly Workflow</h3>
           </div>
           <div class="copy-card">
             <button class="copy-btn" onclick="copyPrompt(this)">Copy</button>
             <pre id="prompt5"></pre>
           </div>
         </div>
-
       </section>
 
       <!-- PRINCIPLES SECTION -->
       <section class="section">
         <div class="section-head">
-          <div class="number orange">!</div>
+          <div class="step-badge ghost">!</div>
           <div>
-            <h2>BUILD YOUR OWN CHANNEL</h2>
+            <h2>Build your own channel</h2>
             <div class="section-kicker">Principles for long-term success</div>
           </div>
         </div>
         <div class="copy-card">
-          <ul style="margin:0; padding-left:20px; color:#dfe5ef; line-height:1.8;">
+          <ul style="margin:0; padding-left:20px; color:var(--text-2); line-height:1.8;">
             <li><strong>Adapt, don't adopt.</strong> Take the strategy, leave the identity. Your unique perspective is your competitive advantage.</li>
-            <li><strong>Consistency beats perfection.</strong> The roadmap removes guesswork—your job is to show up and execute.</li>
+            <li><strong>Consistency beats perfection.</strong> The roadmap removes guesswork — your job is to show up and execute.</li>
             <li><strong>Honesty scales.</strong> Real expertise, genuine curiosity, and authentic storytelling build trust that clickbait never can.</li>
             <li><strong>Your audience deserves you.</strong> They're here for <em>your</em> take, not a recreation of someone else's.</li>
           </ul>
@@ -297,22 +338,213 @@
       </section>
 
       <!-- Export + back -->
-      <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; align-items:center;">
+      <div style="display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; align-items:center;">
         <div style="position:relative;">
           <button class="btn-primary" id="exportBtn" style="position:relative; z-index:10;">
-            Export Roadmap ▼
+            Export Roadmap ▾
           </button>
-          <div id="exportDropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); min-width:200px; z-index:20; overflow:hidden;">
-            <button class="export-option" data-format="txt" style="display:block; width:100%; text-align:left; padding:12px 16px; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px;">Export as .txt (plain text)</button>
-            <button class="export-option" data-format="md" style="display:block; width:100%; text-align:left; padding:12px 16px; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px;">Export as .md (Markdown)</button>
-            <button class="export-option" data-format="json" style="display:block; width:100%; text-align:left; padding:12px 16px; background:none; border:none; color:var(--text); cursor:pointer; font-size:14px;">Export as .json (structured)</button>
+          <div id="exportDropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:var(--panel-solid); border:1px solid var(--border-strong); border-radius:13px; box-shadow:var(--shadow-lg); min-width:210px; z-index:20; overflow:hidden;">
+            <button class="export-option" data-format="txt">Export as .txt (plain text)</button>
+            <button class="export-option" data-format="md">Export as .md (Markdown)</button>
+            <button class="export-option" data-format="json">Export as .json (structured)</button>
           </div>
         </div>
-        <button class="btn-primary"
-          style="background:var(--panel); color:var(--text); border:1px solid var(--border);"
-          onclick="showScreen('landing')">
-          ← Analyze another channel
-        </button>
+        <button class="btn-ghost" onclick="showScreen('landing')">← Analyze another channel</button>
+      </div>
+
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 4 — HOW IT WORKS -->
+  <div id="screen-how-it-works" class="screen">
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">How it Works</div>
+        <h1>From channel URL<br>to your <span class="hl-accent">roadmap</span></h1>
+        <p class="hero-sub">
+          CreatorRoadmap studies a successful channel, extracts the patterns that
+          make it work, and hands you a repeatable production plan — so you can build
+          your own channel inspired by it, not a copy of it.
+        </p>
+        <div style="margin-top:24px;">
+          <button class="btn-primary" onclick="showScreen('landing')">Try it →</button>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="step-badge">1</div>
+          <div>
+            <h2>Paste a channel URL</h2>
+            <div class="section-kicker">Any YouTube channel handle or link</div>
+          </div>
+        </div>
+        <p>
+          Drop in a creator's channel (e.g. <code>https://www.youtube.com/@FavoriteCreator</code>).
+          We pull their latest 30 uploads — titles, lengths, publish dates, and view counts.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="step-badge">2</div>
+          <div>
+            <h2>We analyze the patterns</h2>
+            <div class="section-kicker">Content strategy, production, growth</div>
+          </div>
+        </div>
+        <p>
+          In a roadmap, we classify the channel's niche, measure upload cadence, estimate
+          revenue potential, and detect which AI tools they use — then identify the
+          repeatable <strong>format fingerprint</strong> behind their success.
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="step-badge">3</div>
+          <div>
+            <h2>You get a 5-step roadmap</h2>
+            <div class="section-kicker">Ready-to-use, copy-paste prompts</div>
+          </div>
+        </div>
+        <p>Actionable prompts for:</p>
+        <ul class="title-list">
+          <li><strong>Step 1</strong> — Content strategy &amp; ideation</li>
+          <li><strong>Step 2</strong> — Script structure &amp; storytelling</li>
+          <li><strong>Step 3</strong> — Visual style &amp; image prompts</li>
+          <li><strong>Step 4</strong> — Voice &amp; audio settings</li>
+          <li><strong>Step 5</strong> — Production &amp; assembly workflow</li>
+        </ul>
+        <div class="tip" style="margin-top:16px;">
+          <strong>Remember:</strong> Adapt the strategy, leave the identity. Use these
+          insights to build <em>your</em> unique channel — not to replicate someone else's.
+        </div>
+      </section>
+
+      <div style="margin-top:28px; text-align:center;">
+        <button class="btn-primary" onclick="showScreen('landing')">← Back to analyzer</button>
+      </div>
+
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 5 — EXAMPLE CHANNELS -->
+  <div id="screen-examples" class="screen">
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">Example Channels</div>
+        <h1>Channels worth<br>learning <span class="hl-accent">from</span></h1>
+        <p class="hero-sub">
+          Each of these creators has a clear, repeatable strategy. Click any one to
+          generate its roadmap and see the patterns you could adapt.
+        </p>
+      </header>
+
+      <section class="section">
+        <div class="stats">
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@TheUnchartedMysteries')">
+            <strong style="font-size:17px;">Uncharted Mysteries</strong>
+            <span>Ancient Mysteries / Dark History</span>
+          </div>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@AndreiJikh')">
+            <strong style="font-size:17px;">Andrei Jikh</strong>
+            <span>Personal Finance</span>
+          </div>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@JCSCriminalPsychology')">
+            <strong style="font-size:17px;">JCS Criminal Psychology</strong>
+            <span>True Crime</span>
+          </div>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@YellowBrickCinema')">
+            <strong style="font-size:17px;">Yellow Brick Cinema</strong>
+            <span>Sleep / Ambient</span>
+          </div>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@AIExplained-9w8')">
+            <strong style="font-size:17px;">AI Explained</strong>
+            <span>AI &amp; Tech Explainers</span>
+          </div>
+          <div class="stat clickable" onclick="prefillAndAnalyze('https://www.youtube.com/@ColdFusion')">
+            <strong style="font-size:17px;">ColdFusion</strong>
+            <span>Business Case Studies</span>
+          </div>
+        </div>
+      </section>
+
+      <div style="margin-top:28px; text-align:center;">
+        <button class="btn-primary" onclick="showScreen('landing')">← Analyze your own</button>
+      </div>
+
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 6 — FAQ -->
+  <div id="screen-faq" class="screen">
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">FAQ</div>
+        <h1>Frequently asked<br>questions</h1>
+      </header>
+
+      <section class="section" style="padding-top:30px;">
+        <div class="faq-item">
+          <h3>Is this copying other creators?</h3>
+          <p>No. The roadmap reveals <em>strategy</em> — format, cadence, and production approach — so you can adapt it to your own voice. It explicitly tells you to leave the identity and branding behind.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What does it cost?</h3>
+          <p>CreatorRoadmap is free to use.</p>
+        </div>
+        <div class="faq-item">
+          <h3>How many videos do I need?</h3>
+          <p>We analyze the last 30 uploads and need at least 10 videos to identify a reliable content pattern.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Do I need AI tools to use this?</h3>
+          <p>Not at all. The prompts recommend tools, but they work for fully human productions too. Use what fits your workflow.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Can I export the roadmap?</h3>
+          <p>Yes — on any results page, use the Export button to download your roadmap as .txt, .md, or .json.</p>
+        </div>
+      </section>
+
+      <div style="margin-top:28px; text-align:center;">
+        <button class="btn-primary" onclick="showScreen('landing')">← Back to analyzer</button>
+      </div>
+
+      <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>
+    </main>
+  </div>
+
+  <!-- SCREEN 7 — CONTACT -->
+  <div id="screen-contact" class="screen">
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">Contact</div>
+        <h1>Get in <span class="hl-accent">touch</span></h1>
+        <p class="hero-sub">
+          Questions, feedback, or a channel you'd love to see analyzed? We'd love to hear from you.
+        </p>
+      </header>
+
+      <section class="section">
+        <div class="copy-card">
+          <p style="margin:0 0 12px;">
+            <strong>Email:</strong>
+            <a href="mailto:hello@creatorroadmap.app" style="color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(255,196,0,0.3);">hello@creatorroadmap.app</a>
+          </p>
+          <p style="margin:0;">
+            <strong>Feedback:</strong> Tell us which niches or features you want next —
+            we read every message.
+          </p>
+        </div>
+      </section>
+
+      <div style="margin-top:28px; text-align:center;">
+        <button class="btn-primary" onclick="showScreen('landing')">← Back to analyzer</button>
       </div>
 
       <div class="footer">CreatorRoadmap — Learn From Successful Channels</div>

@@ -146,6 +146,67 @@ function showNotSupported(reasons, warnings = []) {
   showScreen('disqualified');
 }
 
+// Escape text for safe insertion into HTML
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// Build the dedicated "AI Tools Detected" card for the results screen.
+// Lists each specific tool (name, category, and human-readable use).
+// Falls back to detected categories when no named tool is matched.
+function renderAIToolsCard(aiDetection) {
+  // Remove any previously rendered AI tools card (re-analysis cleans up).
+  const prior = document.querySelector('.ai-tools');
+  if (prior) prior.remove();
+
+  const tools = Array.isArray(aiDetection.tools) ? aiDetection.tools.filter(t => t && t.name) : [];
+  const categories = (aiDetection.details || [])
+    .map(d => d.category)
+    .filter((c, i, arr) => arr.indexOf(c) === i);
+
+  const container = document.createElement('div');
+  container.className = 'ai-tools';
+
+  let rows;
+  if (tools.length > 0) {
+    rows = tools.map(t =>
+      '<li class="ai-tool">' +
+        '<div class="ai-tool-top">' +
+          '<span class="ai-tool-name">' + esc(t.name) + '</span>' +
+          '<span class="ai-tool-cat">' + esc(t.category || t.purpose || 'AI Tool') + '</span>' +
+        '</div>' +
+        (t.use ? '<p class="ai-tool-use">' + esc(t.use) + '</p>' : '') +
+      '</li>'
+    ).join('');
+  } else {
+    rows = categories.map(cat =>
+      '<li class="ai-tool">' +
+        '<div class="ai-tool-top">' +
+          '<span class="ai-tool-name">' + esc(cat.charAt(0).toUpperCase() + cat.slice(1)) + '</span>' +
+          '<span class="ai-tool-cat">AI Workflow</span>' +
+        '</div>' +
+        '<p class="ai-tool-use">This creator uses AI in their ' + esc(cat) + ' workflow.</p>' +
+      '</li>'
+    ).join('');
+  }
+
+  container.innerHTML =
+    '<div class="ai-tools-head">' +
+      '<div class="ai-tools-badge">🤖</div>' +
+      '<div>' +
+        '<h3>AI Tools Detected</h3>' +
+        '<div class="section-kicker">' +
+          (tools.length > 0 ? tools.length + (tools.length === 1 ? ' tool' : ' tools') + ' spotted in this channel’s workflow' : 'This creator uses AI across their workflow') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<ul class="ai-tools-grid">' + rows + '</ul>';
+
+  return container;
+}
+
 // Populate results screen
 function populateResults(data) {
   const card = data.channelCard;
@@ -174,18 +235,18 @@ function populateResults(data) {
   document.getElementById('whyItWorks').innerHTML =
     '<strong>Why this approach works:</strong> ' + card.whyItWorks;
 
-  // AI Detection badge
+  // AI Detection — dedicated card listing detected tools with their use
   if (aiDetection.isLikelyAI) {
-    const aiBadge = document.createElement('div');
-    aiBadge.style.cssText = 'margin-top:16px; padding:12px 16px; background:rgba(99,214,162,.15); border:1px solid rgba(99,214,162,.3); border-radius:12px; color:#63d6a2; font-weight:600;';
-    aiBadge.innerHTML = '🤖 <strong>AI Tools Detected</strong> — This creator uses AI in their workflow (' + aiDetection.aiScore + ' categories: ' + aiDetection.details.map(d => d.category).join(', ') + '). Learn their approach.';
-    document.getElementById('whyItWorks').parentNode.insertBefore(aiBadge, document.getElementById('whyItWorks').nextSibling);
+    document.getElementById('whyItWorks').parentNode.insertBefore(
+      renderAIToolsCard(aiDetection),
+      document.getElementById('whyItWorks').nextSibling
+    );
   }
 
   // Warnings
   if (warnings.length > 0) {
     const warningDiv = document.createElement('div');
-    warningDiv.style.cssText = 'margin-top:16px; padding:12px 16px; background:rgba(255,157,66,.15); border:1px solid rgba(255,157,66,.3); border-radius:12px; color:#ff9d42;';
+    warningDiv.className = 'notice orange';
     warningDiv.innerHTML = '<strong>⚠ Notes:</strong><br>' + warnings.map(w => '• ' + w).join('<br>');
     document.getElementById('whyItWorks').parentNode.insertBefore(warningDiv, document.getElementById('whyItWorks').nextSibling);
   }

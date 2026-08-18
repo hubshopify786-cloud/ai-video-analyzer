@@ -496,6 +496,7 @@ function detectAIUsage(channelData, videos) {
               name: tool.name,
               category: tool.category,
               purpose: toolCategory,
+              use: tool.use || '',
               matchedAlias: alias
             });
           }

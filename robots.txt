@@ -1,0 +1,9 @@
+# CreatorRoadmap robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://creatorroadmap.app/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 10
