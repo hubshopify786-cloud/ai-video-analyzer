@@ -56,16 +56,30 @@
 </head>
 <body>
 
-  <!-- Header / Navigation -->
+  <!-- Background ambience (particles + glow orbs) -->
+  <div class="bg-ambience" aria-hidden="true">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <canvas id="particles" class="particles-canvas"></canvas>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- Top progress bar (shown during analysis) -->
+  <div id="topProgress" class="top-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-hidden="true">
+    <div class="progress-fill"></div>
+  </div>
+
+  <!-- Sticky Glass Header -->
   <header class="site-header" role="banner">
     <div class="page">
       <div class="header-inner">
-        <a href="/" class="logo" aria-label="CreatorRoadmap Home" onclick="showScreen('landing'); return false;">
+        <a href="/" class="logo magnetic" aria-label="CreatorRoadmap Home" onclick="showScreen('landing'); return false;">
           <span class="logo-mark" aria-hidden="true">
-            <svg width="17" height="17" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 10h20M6 16h14M6 22h9" stroke="#ffc400" stroke-width="3.4" stroke-linecap="round"/>
-              <circle cx="27.5" cy="22" r="3" fill="#ffc400"/>
-              <circle cx="22.5" cy="22" r="3" fill="#ffc400" opacity="0.5"/>
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 10h20M6 16h14M6 22h9" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+              <circle cx="27.5" cy="22" r="3" fill="currentColor"/>
+              <circle cx="22.5" cy="22" r="3" fill="currentColor" opacity="0.5"/>
             </svg>
           </span>
           <span class="logo-name">CreatorRoadmap</span>
@@ -76,7 +90,22 @@
           <a href="#faq" class="nav-link" onclick="showScreen('faq'); return false;">FAQ</a>
           <a href="#contact" class="nav-link" onclick="showScreen('contact'); return false;">Contact</a>
         </nav>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
       </div>
+    </div>
+    <!-- Mobile menu overlay -->
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Navigation">
+      <nav class="mobile-nav">
+        <a href="#" class="mobile-nav-link" onclick="showScreen('landing'); closeMobileMenu(); return false;">Analyze Channel</a>
+        <a href="#" class="mobile-nav-link" onclick="showScreen('how-it-works'); closeMobileMenu(); return false;">How it Works</a>
+        <a href="#" class="mobile-nav-link" onclick="showScreen('examples'); closeMobileMenu(); return false;">Example Channels</a>
+        <a href="#" class="mobile-nav-link" onclick="showScreen('faq'); closeMobileMenu(); return false;">FAQ</a>
+        <a href="#" class="mobile-nav-link" onclick="showScreen('contact'); closeMobileMenu(); return false;">Contact</a>
+      </nav>
     </div>
   </header>
 

@@ -12,6 +12,7 @@ app.use(express.static(__dirname));
 const toolsDatabase = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'tools.json'), 'utf8')
 );
+const promptBlueprints = require('./promptBlueprints');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
@@ -685,58 +686,70 @@ function buildChannelCard(channelData, videos, cadenceDays, revenue, nicheResult
   };
 }
 
-// Build 5-step prompt templates using niche data + actual channel analysis
+// Build 5-step prompt templates using blueprint system and dynamic data
 function buildPromptTemplates(niche, channelData, videos, nicheResult) {
+  const blueprint = promptBlueprints[niche.id] || promptBlueprints['ancient-mysteries']; // fallback
+
+  // Prepare data for placeholders
   const titles = videos.slice(0, 30).map(v => v.title);
-  const recentTitles = titles.slice(0, 10);
-  const titlePattern = titles.length > 0 ? titles[0] : 'Sample title';
+  const recentTitles = titles.slice(0, 5);
+  const topKeywords = extractTopKeywords(titles, niche.keywords).slice(0, 15).join(', ');
+  const titlePatterns = extractTitlePatterns(titles).slice(0, 5).map(p => `• ${p}`).join('\n');
 
-  // Extract common title patterns from actual videos
-  const commonPrefixes = extractTitlePatterns(titles);
+  // Determine tools
+  const aiDetection = nicheResult.aiDetection || {};
+  const detectedTools = aiDetection.tools || [];
+  const detectedCategories = Object.keys(aiDetection).filter(k => aiDetection[k] === true && k !== 'details' && k !== 'aiScore' && k !== 'isLikelyAI' && k !== 'tools');
 
-  // Get detected AI tools
-  const detectedTools = nicheResult.aiDetection?.tools || [];
-  const detectedCategories = Object.keys(nicheResult.aiDetection || {})
-    .filter(k => nicheResult.aiDetection[k] === true && k !== 'details' && k !== 'aiScore' && k !== 'isLikelyAI' && k !== 'tools');
-
-  // Build tool-specific instructions
   const writingTool = detectedTools.find(t => t.purpose === 'writing') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('script') || t.purpose.toLowerCase().includes('writing')) || { name: 'Claude' };
   const voiceTool = detectedTools.find(t => t.purpose === 'voiceover') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('voice')) || { name: 'ElevenLabs' };
   const imageTool = detectedTools.find(t => t.purpose === 'image') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('visual') || t.purpose.toLowerCase().includes('image')) || { name: 'Midjourney' };
   const videoTool = detectedTools.find(t => t.purpose === 'video') || niche.aiTools.find(t => t.purpose.toLowerCase().includes('video') || t.purpose.toLowerCase().includes('edit')) || { name: 'CapCut' };
 
-  // Calculate actual stats
-  const avgViews = videos.slice(0, 12).reduce((sum, v) => sum + v.viewCount, 0) / Math.max(1, videos.slice(0, 12).length);
-  const uploadCadenceDays = nicheResult.medianDuration > 0 ? Math.round(nicheResult.medianDuration) : 7;
-  const topKeywords = extractTopKeywords(titles, niche.keywords);
+  const scriptWords = Math.round(((niche.videoLengthMin + niche.videoLengthMax) / 2) * 150);
 
-  return {
-    step1: {
-      title: 'Step 1 — Topic Prompt',
-      content: `Paste this into ${writingTool.name}:\n\nGenerate 10 video ideas for a "${channelData.title}"-style ${niche.name} channel.\n\nCHANNEL CONTEXT:\n- Niche: ${niche.name}\n- Subscribers: ${channelData.subscriberCount.toLocaleString()}\n- Videos: ${channelData.videoCount}\n- Typical length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- Upload cadence: ~${uploadCadenceDays} days\n- Avg views/video: ~${Math.round(avgViews).toLocaleString()}\n\nTITLE PATTERNS TO EMULATE:\n${recentTitles.slice(0, 5).map((t, i) => `${i+1}. ${t}`).join('\n')}\n\nCOMMON TITLE STRUCTURES:\n${commonPrefixes.map(p => `• ${p}`).join('\n')}\n\nHIGH-PERFORMING KEYWORDS (from this channel):\n${topKeywords.slice(0, 15).join(', ')}\n\nOUTPUT FORMAT:\nFor each idea provide:\n1. Click-worthy title (matching the patterns above)\n2. 1-sentence hook\n3. 3-5 chapter/section outline\n4. Why this will perform (referencing ${channelData.title}'s proven topics)\n\nCONSTRAINTS:\n- Must be factually accurate and verifiable\n- Fit ${niche.pacingStyle.toLowerCase()} pacing\n- Length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes\n- ${detectedCategories.includes('voiceover') ? 'Written for AI voiceover (ElevenLabs/similar)' : 'Written for human or AI narration'}\n- ${detectedCategories.includes('image') ? 'Visual-heavy: plan for AI-generated images' : 'Visuals: stock footage / screen recording / archives'}\n- Include YouTube AI-disclosure compliance note`
-    },
-    step2: {
-      title: 'Step 2 — Script Prompt',
-      content: `Paste this into ${writingTool.name}:\n\nWrite a complete ${niche.videoLengthMin}-${niche.videoLengthMax} minute script for a ${niche.name} video.\n\nTOPIC: [INSERT YOUR CHOSEN TOPIC FROM STEP 1]\n\nCHANNEL VOICE & STRUCTURE (based on "${channelData.title}"):\n- Format: ${niche.formatFingerprint}\n- Pacing: ${niche.pacingStyle}\n- Visual approach: ${niche.visualApproach}\n- Target length: ${niche.videoLengthMin}-${niche.videoLengthMax} minutes (~${Math.round((niche.videoLengthMin + niche.videoLengthMax) / 2 * 150)} words at 150 wpm)\n\nSCRIPT STRUCTURE:\n1. HOOK (0:00-0:30) — Start with the most compelling mystery/claim/question. No fluff.\n2. CONTEXT SETUP (0:30-2:00) — Why this matters, what viewer will learn\n3. MAIN CONTENT — Divided into ${niche.formatFingerprint.includes('7-12') ? '7-12' : niche.formatFingerprint.includes('3-5') ? '3-5' : '5-8'} chapters/sections\n   • Each section: mini-hook → evidence → payoff\n   • Include specific facts, dates, names, numbers\n   • ${detectedCategories.includes('image') ? 'Add [VISUAL CUE] markers for AI image generation' : 'Add [B-ROLL] markers for footage/screenshots'}\n4. SYNTHESIS/CONCLUSION — Tie threads together, bigger picture\n5. CTA — Subscribe + tease next video\n\nTONE: ${niche.pacingStyle}\nFACT-CHECKING: Every claim must be verifiable. Add [SOURCE NEEDED] for anything not common knowledge.\nAI VOICE OPTIMIZATION: ${detectedCategories.includes('voiceover') ? 'Write for ElevenLabs: shorter sentences, clear punctuation, phonetic spellings for names' : 'Standard narration style'}\n\nEXAMPLE OPENING STYLE (from "${recentTitles[0] || 'top video'}"):\n"${recentTitles[0] ? recentTitles[0].substring(0, 120) + '...' : 'Start with a gripping question or impossible fact'}"`
-    },
-    step3: {
-      title: 'Step 3 — Visual / Image Prompt',
-      content: `Paste this into ${imageTool.name} (or your preferred AI image tool):\n\nGenerate cinematic 16:9 visuals for a ${niche.name} video in the style of "${channelData.title}".\n\nVISUAL STYLE:\n${niche.visualApproach}\n\nSPECIFIC REQUIREMENTS:\n- Aspect ratio: 16:9 (1920x1080 or 3840x2160)\n- Consistency: Use --cref / style reference for character/scene continuity\n- Color palette: ${getColorPalette(niche.name)}\n- Lighting: ${getLightingStyle(niche.name)}\n\nSHOT LIST TEMPLATE (adapt per script section):\n${generateShotList(niche.name, niche.visualApproach)}\n\nTOOL-SPECIFIC TIPS:\n${getImageToolTips(imageTool.name)}\n\nCHAPTER MARKERS: Add text overlay prompts for chapter titles (clean, readable font, consistent positioning)\nTHUMBNAIL: Generate 3 thumbnail variants — high contrast, face/emotion, curiosity gap\n\nDETECTED CHANNEL STYLE:\n${detectedCategories.includes('image') ? 'This channel uses AI-generated visuals — match their aesthetic exactly' : 'This channel uses stock/archive footage — prompts should describe real footage searches'}\n\nNEGATIVE PROMPTS: low quality, blurry, watermark, text artifacts, deformed hands, extra limbs, cartoon, illustration (unless style demands), oversaturated`
-    },
-    step4: {
-      title: 'Step 4 — Voice Settings',
-      content: `${voiceTool.name} Voice Configuration for "${channelData.title}" style:\n\nRECOMMENDED VOICE PROFILE:\n- Voice type: ${getVoiceType(niche.pacingStyle, niche.name)}\n- Stability: ${getStability(niche.pacingStyle)}\n- Similarity/Style Exaggeration: ${getSimilarity(niche.pacingStyle)}\n- Speed: ${getSpeed(niche.pacingStyle)} (1.0 = normal)\n\nTESTING PROTOCOL:\n1. Generate 30-second test with same 200-word passage across 4-5 voices\n2. Score each on: naturalness (1-10), niche fit (1-10), listener fatigue (1-10)\n3. Pick top 2, generate full script with both\n4. A/B test on audience retention (if possible)\n\nVOICE SETTINGS BY NICHE:\n${getVoiceSettingsByNiche(niche.name)}\n\nPOST-PROCESSING:\n- Normalize to -16 LUFS (YouTube standard)\n- Light compression (2:1, slow attack)\n- De-ess if needed\n- ${detectedCategories.includes('voiceover') ? 'Add subtle room tone for realism' : ''}\n\nDISCLOSURE: Label video as "Altered or synthetic content" in YouTube upload settings`
-    },
-    step5: {
-      title: 'Step 5 — Assembly Workflow',
-      content: `COMPLETE PRODUCTION WORKFLOW for "${channelData.title}"-style ${niche.name} channel:\n\n📋 PRE-PRODUCTION (Day 1-2)\n• Topic selected from Step 1\n• Script finalized from Step 2 (fact-checked, [SOURCE NEEDED] resolved)\n• Shot list created from Step 3\n• Voice selected & tested from Step 4\n• Thumbnail concepts drafted\n\n🎬 PRODUCTION (Day 2-4)\n1. VOICEOVER: Generate full narration in ${voiceTool.name}\n   - Batch by chapter for consistency\n   - Export WAV, 48kHz\n2. VISUALS:\n   ${detectedCategories.includes('image') ?
-`   - Generate AI images in ${imageTool.name} per shot list\n   - Use --cref for consistency across scenes\n   - Upscale to 4K (Topaz/waifu2x)\n   - Organize by chapter/timestamp` :
-`   - Source stock footage (Storyblocks/Pexels/NASA/archives)\n   - Screen record demos (${videoTool.name} / OBS)\n   - Download archival images (public domain)\n   - Organize by chapter/timestamp`}
-3. MUSIC/SFX: ${detectedCategories.includes('music') ? `Generate in ${detectedTools.find(t => t.purpose === 'music')?.name || 'Suno/Udio'}` : 'Source from Epidemic Sound / Artlist / YouTube Audio Library'}\n\n✂️ EDITING (Day 4-6) — ${videoTool.name}\n• Import: voiceover + visuals + music + SFX\n• Rough cut: lay voiceover, trim silence\n• Visual sync: match visuals to narration cues\n• Chapter markers: add at script section boundaries\n• Ken Burns / slow zoom on static images (${niche.pacingStyle.includes('slow') ? '2-3 sec' : '1-2 sec'})\n• Lower thirds: chapter titles, key names/dates\n• Color grade: ${getColorGrade(niche.name)}\n• Audio mix: voice -6dB, music -18 to -24dB under voice\n• Captions: ${detectedCategories.includes('caption') ? `Auto-generate in ${detectedTools.find(t => t.purpose === 'caption')?.name || 'Submagic'}` : 'YouTube auto-captions + manual cleanup'}\n\n📤 PUBLISHING (Day 7)\n• Title: From Step 1 (optimize for CTR)\n• Description: Script summary + timestamps + links + disclosure\n• Tags: ${topKeywords.slice(0, 10).join(', ')}\n• Thumbnail: Best of 3 variants (A/B test if possible)\n• Playlist: Add to relevant series playlist\n• Shorts: Create 60-sec teaser from best hook\n• Schedule: ${nicheResult.uploadCadence || 'Consistent day/time'}\n\n📊 POST-PUBLISH (Day 7-30)\n• Monitor retention graph — note drop-off points for next video\n• Reply to every comment in first 24h\n• Community post: behind-the-scenes / poll for next topic\n• Analytics review at 7d / 30d: CTR, AVD, sub conversion\n\n⚠️ COMPLIANCE CHECKLIST\n☐ YouTube "Altered or synthetic content" label enabled\n☐ No misleading claims — all facts verified\n☐ Music/SFX licensed for commercial use\n☐ Visuals: no copyrighted characters/logos without permission\n☐ Affiliate/sponsor disclosures in description\n☐ Community guidelines compliant\n\n🔁 REPEAT: Next video starts Day 1 while current publishes`
-    }
+  const data = {
+    channelName: channelData.title,
+    nicheName: niche.name,
+    formatFingerprint: niche.formatFingerprint,
+    pacingStyle: niche.pacingStyle,
+    visualApproach: niche.visualApproach,
+    videoLengthMin: niche.videoLengthMin,
+    videoLengthMax: niche.videoLengthMax,
+    rpm: niche.rpm,
+    uploadCadence: nicheResult.uploadCadence || 'Consistent schedule',
+    topKeywords,
+    titlePatterns,
+    imageTool: imageTool.name,
+    imageToolTips: getImageToolTips(imageTool.name),
+    videoTool: videoTool.name,
+    voiceType: getVoiceType(niche.pacingStyle, niche.name),
+    stability: getStability(niche.pacingStyle),
+    similarity: getSimilarity(niche.pacingStyle),
+    speed: getSpeed(niche.pacingStyle),
+    scriptWords,
+    // used in step2 of personal finance for placeholder `videoLengthMax-2`; but we can compute directly.
   };
-}
 
+  // Replace placeholders in each step
+  const prompts = {};
+  for (let i = 1; i <= 5; i++) {
+    let template = blueprint['step' + i];
+    // Replace all placeholders
+    for (const [key, value] of Object.entries(data)) {
+      template = template.replace(new RegExp('{{' + key + '}}', 'g'), value);
+    }
+    // Special case for personal finance placeholder {{videoLengthMax-2}} (we'll just replace with actual value)
+    template = template.replace(/\{\{videoLengthMax-2\}\}/g, Math.max(0, niche.videoLengthMax - 2));
+    prompts['step' + i] = {
+      title: `Step ${i} — ${['Topic Prompt', 'Script Prompt', 'Visual Prompt', 'Voice Settings', 'Assembly Workflow'][i-1]}`,
+      content: template
+    };
+  }
+
+  return prompts;
+}
+  // Extract common title patterns from actual videos
 // Helper functions for prompt generation
 function extractTitlePatterns(titles) {
   const patterns = new Map();
